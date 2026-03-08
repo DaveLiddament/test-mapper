@@ -1,0 +1,77 @@
+{
+    "name": "dave-liddament/test-mapper",
+    "description": "Test Mapper",
+    "type": "library",
+    "license": "proprietary",
+    "bin": ["bin/test-mapper"],
+    "require": {
+        "php": "~8.5",
+        "symfony/console": "^7.2",
+        "symfony/process": "^7.2",
+        "nikic/php-parser": "^5.0"
+    },
+    "require-dev": {
+        "bamarni/composer-bin-plugin": "*",
+        "phpstan/phpstan": "*",
+        "phpstan/phpstan-strict-rules": "*",
+        "phpstan/phpstan-phpunit": "*",
+        "phpstan/phpstan-webmozart-assert": "*",
+        "dave-liddament/phpstan-php-language-extensions": "*",
+        "spaze/phpstan-disallowed-calls": "*",
+        "rector/rector": "*",
+        "phpunit/phpunit": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "DaveLiddament\\TestMapper\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DaveLiddament\\TestMapper\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "setup": [
+            "@composer install",
+            "@composer bin all install"
+        ],
+        "ci": [
+            "@composer-validate",
+            "@lint",
+            "@composer-unused",
+            "@composer-require-checker",
+            "@cs",
+            "@phpstan",
+            "@test"
+        ],
+        "ci-local": [
+            "@composer-validate",
+            "@lint",
+            "@composer-unused",
+            "@composer-require-checker",
+            "@cs-fix",
+            "@phpstan",
+            "@test"
+        ],
+        "composer-validate": "@composer validate --no-check-all --strict",
+        "lint": "parallel-lint src tests bin",
+        "composer-unused": "composer-unused",
+        "composer-require-checker": "composer-require-checker check",
+        "cs": "php-cs-fixer fix -v --dry-run",
+        "cs-fix": "php-cs-fixer fix -v",
+        "phpstan": "phpstan analyse --no-progress",
+        "test": "phpunit"
+    },
+    "config": {
+        "allow-plugins": {
+            "bamarni/composer-bin-plugin": true
+        }
+    },
+    "extra": {
+        "bamarni-bin": {
+            "bin-links": true,
+            "forward-command": true
+        }
+    }
+}

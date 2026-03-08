@@ -1,0 +1,16 @@
+diff --git a/src/OldClass.php b/src/OldClass.php
+deleted file mode 100644
+index abcdefg..0000000
+--- a/src/OldClass.php
++++ /dev/null
+@@ -1,10 +0,0 @@
+-<?php
+-
+-declare(strict_types=1);
+-
+-namespace App;
+-
+-final class OldClass
+-{
+-    public function hello(): void {}
+-}

@@ -1,0 +1,36 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use DaveLiddament\TestMapper\ChangedTestMethodFinder;
+use DaveLiddament\TestMapper\Command\FindChangedTestsCommand;
+use DaveLiddament\TestMapper\Diff\Git\GitDiffParser;
+use DaveLiddament\TestMapper\Diff\Git\GitDiffProvider;
+use DaveLiddament\TestMapper\TestAnalyzer\PhpUnit\PhpUnitTestMethodFinder;
+use Symfony\Component\Console\Application;
+
+$autoloadPaths = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+];
+
+foreach ($autoloadPaths as $autoloadPath) {
+    if (file_exists($autoloadPath)) {
+        require $autoloadPath;
+
+        break;
+    }
+}
+
+$workingDirectory = (string) getcwd();
+
+$diffProvider = new GitDiffProvider($workingDirectory, new GitDiffParser());
+$testMethodFinder = new PhpUnitTestMethodFinder();
+$changedTestFinder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
+
+$application = new Application('test-mapper', '1.0.0');
+$command = new FindChangedTestsCommand($changedTestFinder);
+$application->add($command);
+$application->setDefaultCommand((string) $command->getName(), true);
+$application->run();

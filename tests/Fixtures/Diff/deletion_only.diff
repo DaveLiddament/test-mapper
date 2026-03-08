@@ -1,0 +1,8 @@
+diff --git a/src/Foo.php b/src/Foo.php
+index 1234567..abcdefg 100644
+--- a/src/Foo.php
++++ b/src/Foo.php
+@@ -5,3 +5,0 @@
+-    public function removedMethod(): void
+-    {
+-    }

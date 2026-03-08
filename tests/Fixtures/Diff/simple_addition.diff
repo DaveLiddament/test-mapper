@@ -1,0 +1,8 @@
+diff --git a/src/Foo.php b/src/Foo.php
+index 1234567..abcdefg 100644
+--- a/src/Foo.php
++++ b/src/Foo.php
+@@ -10,0 +11,3 @@
++    public function newMethod(): void
++    {
++    }
