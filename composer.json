@@ -19,7 +19,8 @@
         "dave-liddament/phpstan-php-language-extensions": "*",
         "spaze/phpstan-disallowed-calls": "*",
         "rector/rector": "*",
-        "phpunit/phpunit": "*"
+        "phpunit/phpunit": "*",
+        "infection/infection": "^0.32.6"
     },
     "autoload": {
         "psr-4": {
@@ -65,7 +66,8 @@
     },
     "config": {
         "allow-plugins": {
-            "bamarni/composer-bin-plugin": true
+            "bamarni/composer-bin-plugin": true,
+            "infection/extension-installer": true
         }
     },
     "extra": {

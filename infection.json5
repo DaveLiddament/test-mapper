@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/infection/infection/0.32/resources/schema.json",
+    "source": {
+        "directories": [
+            "src"
+        ]
+    },
+    "staticAnalysisTool": "phpstan",
+    "logs": {
+        "text": "infection.log"
+    },
+    "minMsi": 90,
+    "minCoveredMsi": 90
+}

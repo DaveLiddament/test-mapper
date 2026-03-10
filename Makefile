@@ -51,7 +51,7 @@ logs: ## Show live logs
 	@$(DOCKER_COMP) logs --tail=0 --follow
 
 ## —— App ——————————————————————————————————————————————————————————————————————
-.PHONY: app/shell app/composer app/setup app/ci app/test app/test-mapper app/phpstan app/cs-fix app/cs app/lint app/composer-unused app/require-checker app/composer-validate
+.PHONY: app/shell app/composer app/setup app/ci app/test app/test-mapper app/phpstan app/cs-fix app/cs app/lint app/composer-unused app/require-checker app/composer-validate app/infection
 
 app/shell: ## Open a shell in the app container
 	@$(APP_EXEC) bash
@@ -94,3 +94,6 @@ app/require-checker: ## Check for missing composer requirements
 
 app/composer-validate: ## Validate composer.json
 	@$(APP_EXEC) composer composer-validate
+
+app/infection: ## Run mutation testing with Infection
+	@$(APP_EXEC) vendor/bin/infection --show-mutations
