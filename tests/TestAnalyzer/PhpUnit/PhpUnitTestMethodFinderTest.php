@@ -63,12 +63,17 @@ final class PhpUnitTestMethodFinderTest extends TestCase
     {
         $result = $this->finder->findTestMethods($this->fixturePath('AttributeTestClass.php'));
 
-        self::assertCount(1, $result);
-        self::assertSame('itHasDataProvider', $result[0]->methodName);
+        self::assertCount(2, $result);
 
-        // The docblock starts at line 13, method ends at line 21
+        // First method: docblock starts at line 13, method ends at line 21
+        self::assertSame('itHasDataProvider', $result[0]->methodName);
         self::assertSame(13, $result[0]->startLine);
         self::assertSame(21, $result[0]->endLine);
+
+        // Second method: no docblock, #[Test] attribute starts at line 23
+        self::assertSame('itHasNoDocblock', $result[1]->methodName);
+        self::assertSame(23, $result[1]->startLine);
+        self::assertSame(28, $result[1]->endLine);
     }
 
     #[Test]

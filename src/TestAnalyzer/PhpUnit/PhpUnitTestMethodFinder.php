@@ -111,6 +111,7 @@ final class PhpUnitTestMethodFinder implements TestMethodFinder
         $attributeStartLine = \PHP_INT_MAX;
         foreach ($method->attrGroups as $attrGroup) {
             $line = $attrGroup->getStartLine();
+            /** @infection-ignore-all Equivalent mutant: $method->getStartLine() already includes attribute lines */
             if ($line < $attributeStartLine) {
                 $attributeStartLine = $line;
             }

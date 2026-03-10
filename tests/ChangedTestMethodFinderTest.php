@@ -60,6 +60,55 @@ final class ChangedTestMethodFinderTest extends TestCase
     }
 
     #[Test]
+    public function itSkipsNonPhpFileAndContinuesToNextFile(): void
+    {
+        $diffProvider = static::createStub(DiffProvider::class);
+        $diffProvider->method('getChangedFiles')->willReturn([
+            new ChangedFile('README.md', [
+                new ChangedLineRange(1, 10),
+            ]),
+            new ChangedFile('tests/FooTest.php', [
+                new ChangedLineRange(10, 5),
+            ]),
+        ]);
+
+        $testMethodFinder = static::createStub(TestMethodFinder::class);
+        $testMethodFinder->method('findTestMethods')->willReturn([
+            new TestMethod('App\\Tests\\FooTest', 'it_works', 10, 20, 'tests/FooTest.php'),
+        ]);
+
+        $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
+        $result = $finder->findChangedTests('main');
+
+        self::assertCount(1, $result);
+        self::assertSame('App\\Tests\\FooTest::it_works', $result[0]->getFullyQualifiedName());
+    }
+
+    #[Test]
+    public function itFindsMultipleChangedTestMethods(): void
+    {
+        $diffProvider = static::createStub(DiffProvider::class);
+        $diffProvider->method('getChangedFiles')->willReturn([
+            new ChangedFile('tests/FooTest.php', [
+                new ChangedLineRange(1, 50),
+            ]),
+        ]);
+
+        $testMethodFinder = static::createStub(TestMethodFinder::class);
+        $testMethodFinder->method('findTestMethods')->willReturn([
+            new TestMethod('App\\Tests\\FooTest', 'it_works', 10, 20, 'tests/FooTest.php'),
+            new TestMethod('App\\Tests\\FooTest', 'it_also_works', 25, 30, 'tests/FooTest.php'),
+        ]);
+
+        $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
+        $result = $finder->findChangedTests('main');
+
+        self::assertCount(2, $result);
+        self::assertSame('App\\Tests\\FooTest::it_works', $result[0]->getFullyQualifiedName());
+        self::assertSame('App\\Tests\\FooTest::it_also_works', $result[1]->getFullyQualifiedName());
+    }
+
+    #[Test]
     public function itReturnsEmptyWhenNoOverlap(): void
     {
         $diffProvider = static::createStub(DiffProvider::class);

@@ -14,6 +14,7 @@ final class GitDiffParser
      */
     public function parse(string $rawDiff): array
     {
+        /** @infection-ignore-all Equivalent mutant: empty/whitespace input falls through to same [] result */
         if ('' === trim($rawDiff)) {
             return [];
         }
@@ -22,6 +23,7 @@ final class GitDiffParser
         $currentFilePath = null;
         /** @var list<ChangedLineRange> $currentRanges */
         $currentRanges = [];
+        /** @infection-ignore-all Equivalent mutant: initial value is irrelevant as $currentFilePath is null at this point */
         $isDeletedFile = false;
 
         $lines = explode("\n", $rawDiff);
@@ -69,6 +71,7 @@ final class GitDiffParser
     private function parseHunkHeader(string $line): ?ChangedLineRange
     {
         // Format: @@ -old[,count] +new[,count] @@
+        /** @infection-ignore-all Equivalent mutant: ^ anchor is redundant as caller already checks str_starts_with($line, '@@') */
         if (1 !== preg_match('/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/', $line, $matches)) {
             return null;
         }

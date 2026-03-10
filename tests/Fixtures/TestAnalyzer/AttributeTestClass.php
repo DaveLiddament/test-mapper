@@ -20,6 +20,13 @@ final class AttributeTestClass extends TestCase
         self::assertGreaterThan(0, $value);
     }
 
+    #[Test]
+    #[DataProvider('dataProvider')]
+    public function itHasNoDocblock(int $value): void
+    {
+        self::assertGreaterThan(0, $value);
+    }
+
     /**
      * @return iterable<array{int}>
      */
