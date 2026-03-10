@@ -44,7 +44,8 @@
             "@composer-require-checker",
             "@cs",
             "@phpstan",
-            "@test"
+            "@test",
+            "@infection"
         ],
         "ci-local": [
             "@composer-validate",
@@ -53,7 +54,8 @@
             "@composer-require-checker",
             "@cs-fix",
             "@phpstan",
-            "@test"
+            "@test",
+            "echo '\\n⚠ Infection (mutation testing) skipped in ci-local as it is slow. Run manually with: composer infection'"
         ],
         "composer-validate": "@composer validate --no-check-all --strict",
         "lint": "parallel-lint src tests bin",
@@ -62,7 +64,8 @@
         "cs": "php-cs-fixer fix -v --dry-run",
         "cs-fix": "php-cs-fixer fix -v",
         "phpstan": "phpstan analyse --no-progress",
-        "test": "phpunit"
+        "test": "phpunit",
+        "infection": "infection --show-mutations"
     },
     "config": {
         "allow-plugins": {
