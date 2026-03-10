@@ -7,6 +7,8 @@ use DaveLiddament\TestMapper\ChangedTestMethodFinder;
 use DaveLiddament\TestMapper\Command\FindChangedTestsCommand;
 use DaveLiddament\TestMapper\Diff\Git\GitDiffParser;
 use DaveLiddament\TestMapper\Diff\Git\GitDiffProvider;
+use DaveLiddament\TestMapper\Specs\GitChangedSpecsFinder;
+use DaveLiddament\TestMapper\Specs\NameStatusDiffParser;
 use DaveLiddament\TestMapper\TestAnalyzer\PhpUnit\PhpUnitTestMethodFinder;
 use Symfony\Component\Console\Application;
 
@@ -29,8 +31,11 @@ $diffProvider = new GitDiffProvider($workingDirectory, new GitDiffParser());
 $testMethodFinder = new PhpUnitTestMethodFinder();
 $changedTestFinder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
 
+$nameStatusParser = new NameStatusDiffParser();
+$changedSpecsFinder = new GitChangedSpecsFinder($workingDirectory, $nameStatusParser);
+
 $application = new Application('test-mapper', '1.0.0');
-$command = new FindChangedTestsCommand($changedTestFinder);
+$command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder);
 $application->add($command);
 $application->setDefaultCommand((string) $command->getName(), true);
 $application->run();

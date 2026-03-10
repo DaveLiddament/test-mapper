@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace DaveLiddament\TestMapper\Command;
 
 use DaveLiddament\TestMapper\ChangedTestFinder;
+use DaveLiddament\TestMapper\Specs\ChangedSpecsFinder;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,6 +20,7 @@ final class FindChangedTestsCommand extends Command
 {
     public function __construct(
         private readonly ChangedTestFinder $changedTestFinder,
+        private readonly ?ChangedSpecsFinder $changedSpecsFinder = null,
     ) {
         parent::__construct();
     }
@@ -32,6 +34,13 @@ final class FindChangedTestsCommand extends Command
             'The branch to compare against',
             'main',
         );
+
+        $this->addOption(
+            'specs-dir',
+            'd',
+            InputOption::VALUE_REQUIRED,
+            'Directory containing spec/requirement files',
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -43,6 +52,17 @@ final class FindChangedTestsCommand extends Command
 
         foreach ($changedTests as $changedTest) {
             $output->writeln($changedTest->getFullyQualifiedName());
+        }
+
+        /** @var string|null $specsDir */
+        $specsDir = $input->getOption('specs-dir');
+
+        if (null !== $specsDir && null !== $this->changedSpecsFinder) {
+            $changedSpecs = $this->changedSpecsFinder->findChangedSpecs($branch, $specsDir);
+
+            foreach ($changedSpecs as $changedSpec) {
+                $output->writeln($changedSpec->getFormattedOutput());
+            }
         }
 
         return Command::SUCCESS;
