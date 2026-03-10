@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace DaveLiddament\TestMapper\Tests\Diff\Git;
 
 use DaveLiddament\TestMapper\Diff\Git\GitDiffParser;
+use DaveLiddament\TestMapper\Tests\Helper\DiffFixtureGenerator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -29,7 +30,11 @@ final class GitDiffParserTest extends TestCase
     #[Test]
     public function itParsesSimpleAddition(): void
     {
-        $diff = $this->loadFixture('simple_addition.diff');
+        $diff = DiffFixtureGenerator::generate(
+            __DIR__.'/../../Fixtures/Diff/SimpleAddition/before.php',
+            __DIR__.'/../../Fixtures/Diff/SimpleAddition/after.php',
+            'src/Foo.php',
+        );
         $result = $this->parser->parse($diff);
 
         self::assertCount(1, $result);
@@ -42,7 +47,11 @@ final class GitDiffParserTest extends TestCase
     #[Test]
     public function itSkipsDeletionOnlyHunks(): void
     {
-        $diff = $this->loadFixture('deletion_only.diff');
+        $diff = DiffFixtureGenerator::generate(
+            __DIR__.'/../../Fixtures/Diff/DeletionOnly/before.php',
+            __DIR__.'/../../Fixtures/Diff/DeletionOnly/after.php',
+            'src/Foo.php',
+        );
         $result = $this->parser->parse($diff);
 
         self::assertCount(1, $result);
@@ -53,7 +62,11 @@ final class GitDiffParserTest extends TestCase
     #[Test]
     public function itParsesNewFile(): void
     {
-        $diff = $this->loadFixture('new_file.diff');
+        $diff = DiffFixtureGenerator::generate(
+            '/dev/null',
+            __DIR__.'/../../Fixtures/Diff/NewFile/after.php',
+            'src/NewClass.php',
+        );
         $result = $this->parser->parse($diff);
 
         self::assertCount(1, $result);
@@ -66,7 +79,11 @@ final class GitDiffParserTest extends TestCase
     #[Test]
     public function itExcludesDeletedFiles(): void
     {
-        $diff = $this->loadFixture('deleted_file.diff');
+        $diff = DiffFixtureGenerator::generate(
+            __DIR__.'/../../Fixtures/Diff/DeletedFile/before.php',
+            '/dev/null',
+            'src/OldClass.php',
+        );
         $result = $this->parser->parse($diff);
 
         self::assertSame([], $result);
@@ -75,22 +92,34 @@ final class GitDiffParserTest extends TestCase
     #[Test]
     public function itParsesMultipleHunks(): void
     {
-        $diff = $this->loadFixture('multiple_hunks.diff');
+        $diff = DiffFixtureGenerator::generate(
+            __DIR__.'/../../Fixtures/Diff/MultipleHunks/before.php',
+            __DIR__.'/../../Fixtures/Diff/MultipleHunks/after.php',
+            'src/Foo.php',
+        );
         $result = $this->parser->parse($diff);
 
         self::assertCount(1, $result);
         self::assertSame('src/Foo.php', $result[0]->filePath);
         self::assertCount(2, $result[0]->changedLineRanges);
-        self::assertSame(5, $result[0]->changedLineRanges[0]->startLine);
+        self::assertSame(9, $result[0]->changedLineRanges[0]->startLine);
         self::assertSame(3, $result[0]->changedLineRanges[0]->lineCount);
-        self::assertSame(22, $result[0]->changedLineRanges[1]->startLine);
-        self::assertSame(4, $result[0]->changedLineRanges[1]->lineCount);
+        self::assertSame(23, $result[0]->changedLineRanges[1]->startLine);
+        self::assertSame(5, $result[0]->changedLineRanges[1]->lineCount);
     }
 
     #[Test]
     public function itParsesMultipleFiles(): void
     {
-        $diff = $this->loadFixture('multiple_files.diff');
+        $diff = DiffFixtureGenerator::generate(
+            __DIR__.'/../../Fixtures/Diff/MultipleFiles/Foo/before.php',
+            __DIR__.'/../../Fixtures/Diff/MultipleFiles/Foo/after.php',
+            'src/Foo.php',
+        ).DiffFixtureGenerator::generate(
+            __DIR__.'/../../Fixtures/Diff/MultipleFiles/Bar/before.php',
+            __DIR__.'/../../Fixtures/Diff/MultipleFiles/Bar/after.php',
+            'src/Bar.php',
+        );
         $result = $this->parser->parse($diff);
 
         self::assertCount(2, $result);
@@ -101,21 +130,16 @@ final class GitDiffParserTest extends TestCase
     #[Test]
     public function itHandlesImplicitCountOfOne(): void
     {
-        $diff = $this->loadFixture('multiple_files.diff');
+        $diff = DiffFixtureGenerator::generate(
+            __DIR__.'/../../Fixtures/Diff/MultipleFiles/Bar/before.php',
+            __DIR__.'/../../Fixtures/Diff/MultipleFiles/Bar/after.php',
+            'src/Bar.php',
+        );
         $result = $this->parser->parse($diff);
 
-        // The second file has @@ -15 +15 @@ (implicit count=1)
-        self::assertCount(1, $result[1]->changedLineRanges);
-        self::assertSame(15, $result[1]->changedLineRanges[0]->startLine);
-        self::assertSame(1, $result[1]->changedLineRanges[0]->lineCount);
-    }
-
-    private function loadFixture(string $filename): string
-    {
-        $path = __DIR__.'/../../Fixtures/Diff/'.$filename;
-        $contents = file_get_contents($path);
-        self::assertNotFalse($contents);
-
-        return $contents;
+        // The hunk @@ -13 +13 @@ has implicit count=1
+        self::assertCount(1, $result[0]->changedLineRanges);
+        self::assertSame(13, $result[0]->changedLineRanges[0]->startLine);
+        self::assertSame(1, $result[0]->changedLineRanges[0]->lineCount);
     }
 }
