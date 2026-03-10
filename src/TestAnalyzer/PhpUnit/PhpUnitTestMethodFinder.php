@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace DaveLiddament\TestMapper\TestAnalyzer\PhpUnit;
 
 use DaveLiddament\TestMapper\Exception\ParseException;
+use DaveLiddament\TestMapper\Model\LineRange;
 use DaveLiddament\TestMapper\Model\TestMethod;
 use DaveLiddament\TestMapper\TestAnalyzer\TestMethodFinder;
+use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
@@ -18,6 +20,7 @@ use PhpParser\ParserFactory;
 final class PhpUnitTestMethodFinder implements TestMethodFinder
 {
     private const string TEST_ATTRIBUTE = 'PHPUnit\\Framework\\Attributes\\Test';
+    private const string DATA_PROVIDER_ATTRIBUTE = 'PHPUnit\\Framework\\Attributes\\DataProvider';
 
     /**
      * @return list<TestMethod>
@@ -75,10 +78,18 @@ final class PhpUnitTestMethodFinder implements TestMethodFinder
         /** @var string $fqcn */
         $fqcn = $class->namespacedName?->toString() ?? '';
 
+        /** @var array<string, ClassMethod> $methodsByName */
+        $methodsByName = [];
+        foreach ($class->getMethods() as $method) {
+            $methodsByName[$method->name->toString()] = $method;
+        }
+
         foreach ($class->getMethods() as $method) {
             if ($this->isTestMethod($method)) {
                 $startLine = $this->getStartLine($method);
                 $endLine = $method->getEndLine();
+                $providerNames = $this->getDataProviderNames($method);
+                $dependentRanges = $this->getDependentRanges($providerNames, $methodsByName);
 
                 $testMethods[] = new TestMethod(
                     $fqcn,
@@ -86,6 +97,7 @@ final class PhpUnitTestMethodFinder implements TestMethodFinder
                     $startLine,
                     $endLine,
                     $filePath,
+                    $dependentRanges,
                 );
             }
         }
@@ -102,6 +114,50 @@ final class PhpUnitTestMethodFinder implements TestMethodFinder
         }
 
         return false;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function getDataProviderNames(ClassMethod $method): array
+    {
+        $names = [];
+
+        foreach ($method->attrGroups as $attrGroup) {
+            foreach ($attrGroup->attrs as $attr) {
+                if (self::DATA_PROVIDER_ATTRIBUTE === $attr->name->toString()) {
+                    $arg = $attr->args[0]->value ?? null;
+                    if ($arg instanceof String_) {
+                        $names[] = $arg->value;
+                    }
+                }
+            }
+        }
+
+        return $names;
+    }
+
+    /**
+     * @param list<string> $providerNames
+     * @param array<string, ClassMethod> $methodsByName
+     *
+     * @return list<LineRange>
+     */
+    private function getDependentRanges(array $providerNames, array $methodsByName): array
+    {
+        $ranges = [];
+
+        foreach ($providerNames as $name) {
+            if (isset($methodsByName[$name])) {
+                $method = $methodsByName[$name];
+                $ranges[] = new LineRange(
+                    $this->getStartLine($method),
+                    $method->getEndLine(),
+                );
+            }
+        }
+
+        return $ranges;
     }
 
     private function getStartLine(ClassMethod $method): int

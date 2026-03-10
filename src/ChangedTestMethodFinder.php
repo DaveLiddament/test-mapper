@@ -37,6 +37,18 @@ final readonly class ChangedTestMethodFinder implements ChangedTestFinder
                         $testMethod->fullyQualifiedClassName,
                         $testMethod->methodName,
                     );
+                    continue;
+                }
+
+                foreach ($testMethod->dependentRanges as $dependentRange) {
+                    if ($changedFile->overlapsRange($dependentRange->startLine, $dependentRange->endLine)) {
+                        $changedTestMethods[] = new ChangedTestMethod(
+                            $testMethod->fullyQualifiedClassName,
+                            $testMethod->methodName,
+                        );
+                        /** @infection-ignore-all Equivalent mutant: `continue` on inner loop produces same result, just doesn't short-circuit */
+                        break;
+                    }
                 }
             }
         }

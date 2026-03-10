@@ -8,6 +8,7 @@ use DaveLiddament\TestMapper\ChangedTestMethodFinder;
 use DaveLiddament\TestMapper\Diff\DiffProvider;
 use DaveLiddament\TestMapper\Model\ChangedFile;
 use DaveLiddament\TestMapper\Model\ChangedLineRange;
+use DaveLiddament\TestMapper\Model\LineRange;
 use DaveLiddament\TestMapper\Model\TestMethod;
 use DaveLiddament\TestMapper\TestAnalyzer\TestMethodFinder;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -136,6 +137,103 @@ final class ChangedTestMethodFinderTest extends TestCase
         $diffProvider->method('getChangedFiles')->willReturn([]);
 
         $testMethodFinder = static::createStub(TestMethodFinder::class);
+
+        $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
+        $result = $finder->findChangedTests('main');
+
+        self::assertSame([], $result);
+    }
+
+    #[Test]
+    public function itFlagsTestWhenDataProviderChanges(): void
+    {
+        $diffProvider = static::createStub(DiffProvider::class);
+        $diffProvider->method('getChangedFiles')->willReturn([
+            new ChangedFile('tests/FooTest.php', [
+                new ChangedLineRange(50, 3), // lines 50-52, overlaps provider only
+            ]),
+        ]);
+
+        $testMethodFinder = static::createStub(TestMethodFinder::class);
+        $testMethodFinder->method('findTestMethods')->willReturn([
+            new TestMethod('App\\Tests\\FooTest', 'it_works', 10, 20, 'tests/FooTest.php', [
+                new LineRange(48, 55),
+            ]),
+        ]);
+
+        $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
+        $result = $finder->findChangedTests('main');
+
+        self::assertCount(1, $result);
+        self::assertSame('App\\Tests\\FooTest::it_works', $result[0]->getFullyQualifiedName());
+    }
+
+    #[Test]
+    public function itFlagsAllTestsSharingChangedDataProvider(): void
+    {
+        $diffProvider = static::createStub(DiffProvider::class);
+        $diffProvider->method('getChangedFiles')->willReturn([
+            new ChangedFile('tests/FooTest.php', [
+                new ChangedLineRange(50, 3), // lines 50-52, overlaps shared provider
+            ]),
+        ]);
+
+        $sharedProviderRange = new LineRange(48, 55);
+
+        $testMethodFinder = static::createStub(TestMethodFinder::class);
+        $testMethodFinder->method('findTestMethods')->willReturn([
+            new TestMethod('App\\Tests\\FooTest', 'test_one', 10, 20, 'tests/FooTest.php', [$sharedProviderRange]),
+            new TestMethod('App\\Tests\\FooTest', 'test_two', 25, 35, 'tests/FooTest.php', [$sharedProviderRange]),
+        ]);
+
+        $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
+        $result = $finder->findChangedTests('main');
+
+        self::assertCount(2, $result);
+        self::assertSame('App\\Tests\\FooTest::test_one', $result[0]->getFullyQualifiedName());
+        self::assertSame('App\\Tests\\FooTest::test_two', $result[1]->getFullyQualifiedName());
+    }
+
+    #[Test]
+    public function itDoesNotDuplicateWhenBothTestAndProviderChange(): void
+    {
+        $diffProvider = static::createStub(DiffProvider::class);
+        $diffProvider->method('getChangedFiles')->willReturn([
+            new ChangedFile('tests/FooTest.php', [
+                new ChangedLineRange(1, 100), // overlaps everything
+            ]),
+        ]);
+
+        $testMethodFinder = static::createStub(TestMethodFinder::class);
+        $testMethodFinder->method('findTestMethods')->willReturn([
+            new TestMethod('App\\Tests\\FooTest', 'it_works', 10, 20, 'tests/FooTest.php', [
+                new LineRange(48, 55),
+            ]),
+        ]);
+
+        $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
+        $result = $finder->findChangedTests('main');
+
+        self::assertCount(1, $result);
+        self::assertSame('App\\Tests\\FooTest::it_works', $result[0]->getFullyQualifiedName());
+    }
+
+    #[Test]
+    public function itDoesNotFlagTestWhenUnrelatedLinesChange(): void
+    {
+        $diffProvider = static::createStub(DiffProvider::class);
+        $diffProvider->method('getChangedFiles')->willReturn([
+            new ChangedFile('tests/FooTest.php', [
+                new ChangedLineRange(80, 3), // lines 80-82, overlaps neither test nor provider
+            ]),
+        ]);
+
+        $testMethodFinder = static::createStub(TestMethodFinder::class);
+        $testMethodFinder->method('findTestMethods')->willReturn([
+            new TestMethod('App\\Tests\\FooTest', 'it_works', 10, 20, 'tests/FooTest.php', [
+                new LineRange(48, 55),
+            ]),
+        ]);
 
         $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
         $result = $finder->findChangedTests('main');

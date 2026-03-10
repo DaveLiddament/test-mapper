@@ -85,6 +85,63 @@ final class PhpUnitTestMethodFinderTest extends TestCase
         self::assertSame($path, $result[0]->filePath);
     }
 
+    #[Test]
+    public function itFindsDependentRangesForDataProvider(): void
+    {
+        $result = $this->finder->findTestMethods($this->fixturePath('DataProviderTestClass.php'));
+
+        self::assertCount(2, $result);
+
+        // Test with provider has dependent range pointing to additionProvider
+        self::assertSame('itAdds', $result[0]->methodName);
+        self::assertCount(1, $result[0]->dependentRanges);
+        self::assertSame(26, $result[0]->dependentRanges[0]->startLine);
+        self::assertSame(33, $result[0]->dependentRanges[0]->endLine);
+
+        // Test without provider has no dependent ranges
+        self::assertSame('itHasNoProvider', $result[1]->methodName);
+        self::assertSame([], $result[1]->dependentRanges);
+    }
+
+    #[Test]
+    public function itFindsDependentRangesForSharedDataProvider(): void
+    {
+        $result = $this->finder->findTestMethods($this->fixturePath('AttributeTestClass.php'));
+
+        self::assertCount(2, $result);
+
+        // Both tests share the same data provider
+        self::assertSame('itHasDataProvider', $result[0]->methodName);
+        self::assertCount(1, $result[0]->dependentRanges);
+        self::assertSame(30, $result[0]->dependentRanges[0]->startLine);
+        self::assertSame(37, $result[0]->dependentRanges[0]->endLine);
+
+        self::assertSame('itHasNoDocblock', $result[1]->methodName);
+        self::assertCount(1, $result[1]->dependentRanges);
+        self::assertSame(30, $result[1]->dependentRanges[0]->startLine);
+        self::assertSame(37, $result[1]->dependentRanges[0]->endLine);
+    }
+
+    #[Test]
+    public function itFindsDependentRangesForMultipleDataProviders(): void
+    {
+        $result = $this->finder->findTestMethods($this->fixturePath('MultipleDataProviderTestClass.php'));
+
+        self::assertCount(1, $result);
+        self::assertSame('itHasMultipleProviders', $result[0]->methodName);
+        self::assertCount(2, $result[0]->dependentRanges);
+    }
+
+    #[Test]
+    public function itReturnsEmptyDependentRangesWhenNoDataProvider(): void
+    {
+        $result = $this->finder->findTestMethods($this->fixturePath('SimpleTestClass.php'));
+
+        self::assertCount(2, $result);
+        self::assertSame([], $result[0]->dependentRanges);
+        self::assertSame([], $result[1]->dependentRanges);
+    }
+
     private function fixturePath(string $filename): string
     {
         return __DIR__.'/../../Fixtures/TestAnalyzer/'.$filename;
