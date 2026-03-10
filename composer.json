@@ -45,6 +45,7 @@
             "@cs",
             "@phpstan",
             "@test",
+            "@coverage",
             "@infection"
         ],
         "ci-local": [
@@ -55,6 +56,7 @@
             "@cs-fix",
             "@phpstan",
             "@test",
+            "@coverage",
             "echo '\\n⚠ Infection (mutation testing) skipped in ci-local as it is slow. Run manually with: composer infection'"
         ],
         "composer-validate": "@composer validate --no-check-all --strict",
@@ -65,6 +67,10 @@
         "cs-fix": "php-cs-fixer fix -v",
         "phpstan": "phpstan analyse --no-progress",
         "test": "phpunit",
+        "coverage": [
+            "XDEBUG_MODE=coverage phpunit --coverage-clover build/coverage/clover.xml",
+            "php bin/check-coverage build/coverage/clover.xml 100"
+        ],
         "infection": "infection --show-mutations"
     },
     "config": {

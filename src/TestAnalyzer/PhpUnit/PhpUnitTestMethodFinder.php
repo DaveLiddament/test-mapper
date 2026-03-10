@@ -27,7 +27,7 @@ final class PhpUnitTestMethodFinder implements TestMethodFinder
      */
     public function findTestMethods(string $filePath): array
     {
-        $code = file_get_contents($filePath);
+        $code = @file_get_contents($filePath);
 
         if (false === $code) {
             throw new ParseException(sprintf('Could not read file: %s', $filePath));
@@ -38,7 +38,7 @@ final class PhpUnitTestMethodFinder implements TestMethodFinder
         $stmts = $parser->parse($code);
 
         if (null === $stmts) {
-            throw new ParseException(sprintf('Could not parse file: %s', $filePath));
+            throw new ParseException(sprintf('Could not parse file: %s', $filePath)); // @codeCoverageIgnore
         }
 
         $traverser = new NodeTraverser();

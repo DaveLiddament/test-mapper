@@ -128,6 +128,22 @@ final class GitDiffParserTest extends TestCase
     }
 
     #[Test]
+    public function itIgnoresMalformedHunkHeaders(): void
+    {
+        $diff = implode("\n", [
+            'diff --git a/src/Foo.php b/src/Foo.php',
+            '--- a/src/Foo.php',
+            '+++ b/src/Foo.php',
+            '@@ malformed header @@',
+        ]);
+        $result = $this->parser->parse($diff);
+
+        self::assertCount(1, $result);
+        self::assertSame('src/Foo.php', $result[0]->filePath);
+        self::assertSame([], $result[0]->changedLineRanges);
+    }
+
+    #[Test]
     public function itHandlesImplicitCountOfOne(): void
     {
         $diff = DiffFixtureGenerator::generate(

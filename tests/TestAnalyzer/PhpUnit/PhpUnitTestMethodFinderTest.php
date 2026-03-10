@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DaveLiddament\TestMapper\Tests\TestAnalyzer\PhpUnit;
 
+use DaveLiddament\TestMapper\Exception\ParseException;
 use DaveLiddament\TestMapper\TestAnalyzer\PhpUnit\PhpUnitTestMethodFinder;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -17,6 +18,15 @@ final class PhpUnitTestMethodFinderTest extends TestCase
     protected function setUp(): void
     {
         $this->finder = new PhpUnitTestMethodFinder();
+    }
+
+    #[Test]
+    public function itThrowsExceptionForNonExistentFile(): void
+    {
+        $this->expectException(ParseException::class);
+        $this->expectExceptionMessage('Could not read file: /non/existent/file.php');
+
+        $this->finder->findTestMethods('/non/existent/file.php');
     }
 
     #[Test]

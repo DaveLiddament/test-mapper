@@ -46,6 +46,15 @@ final class ChangedLineRangeTest extends TestCase
     }
 
     #[Test]
+    public function itStoresProperties(): void
+    {
+        $range = new ChangedLineRange(10, 3);
+
+        self::assertSame(10, $range->startLine);
+        self::assertSame(3, $range->lineCount);
+    }
+
+    #[Test]
     #[DataProvider('overlapDataProvider')]
     public function itCorrectlyDetectsOverlap(
         ChangedLineRange $range,

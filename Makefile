@@ -51,7 +51,7 @@ logs: ## Show live logs
 	@$(DOCKER_COMP) logs --tail=0 --follow
 
 ## —— App ——————————————————————————————————————————————————————————————————————
-.PHONY: app/shell app/composer app/setup app/ci app/test app/test-mapper app/phpstan app/cs-fix app/cs app/lint app/composer-unused app/require-checker app/composer-validate app/infection
+.PHONY: app/shell app/composer app/setup app/ci app/test app/coverage app/test-mapper app/phpstan app/cs-fix app/cs app/lint app/composer-unused app/require-checker app/composer-validate app/infection
 
 app/shell: ## Open a shell in the app container
 	@$(APP_EXEC) bash
@@ -69,6 +69,9 @@ app/ci: ## Run local CI tasks
 app/test: ## Run tests. Pass the parameter "c=" to add options to phpunit
 	@$(eval c ?=)
 	@$(APP_EXEC) vendor/bin/phpunit $(c)
+
+app/coverage: ## Run tests with 100% line coverage check
+	@$(APP_EXEC) composer coverage
 
 app/test-mapper: ## Run test-mapper. Pass the parameter "c=" to add options
 	@$(eval c ?=)
