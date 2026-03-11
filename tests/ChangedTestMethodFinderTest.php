@@ -219,6 +219,28 @@ final class ChangedTestMethodFinderTest extends TestCase
     }
 
     #[Test]
+    public function itPropagatesTicketIds(): void
+    {
+        $diffProvider = static::createStub(DiffProvider::class);
+        $diffProvider->method('getChangedFiles')->willReturn([
+            new ChangedFile('tests/FooTest.php', [
+                new ChangedLineRange(10, 5),
+            ]),
+        ]);
+
+        $testMethodFinder = static::createStub(TestMethodFinder::class);
+        $testMethodFinder->method('findTestMethods')->willReturn([
+            new TestMethod('App\\Tests\\FooTest', 'it_works', 10, 20, 'tests/FooTest.php', [], ['JIRA-123', 'JIRA-456']),
+        ]);
+
+        $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
+        $result = $finder->findChangedTests('main');
+
+        self::assertCount(1, $result);
+        self::assertSame(['JIRA-123', 'JIRA-456'], $result[0]->ticketIds);
+    }
+
+    #[Test]
     public function itDoesNotFlagTestWhenUnrelatedLinesChange(): void
     {
         $diffProvider = static::createStub(DiffProvider::class);

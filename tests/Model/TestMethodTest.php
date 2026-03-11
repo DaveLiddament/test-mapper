@@ -44,4 +44,28 @@ final class TestMethodTest extends TestCase
 
         self::assertSame([], $method->dependentRanges);
     }
+
+    #[Test]
+    public function itStoresTicketIds(): void
+    {
+        $method = new TestMethod(
+            'App\\Tests\\FooTest',
+            'it_works',
+            5,
+            15,
+            'tests/FooTest.php',
+            [],
+            ['JIRA-123', 'JIRA-456'],
+        );
+
+        self::assertSame(['JIRA-123', 'JIRA-456'], $method->ticketIds);
+    }
+
+    #[Test]
+    public function itDefaultsToEmptyTicketIds(): void
+    {
+        $method = new TestMethod('App\\Tests\\FooTest', 'it_works', 5, 15, 'tests/FooTest.php');
+
+        self::assertSame([], $method->ticketIds);
+    }
 }

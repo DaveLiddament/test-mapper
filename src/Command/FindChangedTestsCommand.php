@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace DaveLiddament\TestMapper\Command;
 
 use DaveLiddament\TestMapper\ChangedTestFinder;
+use DaveLiddament\TestMapper\Output\OutputFormatter;
+use DaveLiddament\TestMapper\Output\TableOutputFormatter;
 use DaveLiddament\TestMapper\Specs\ChangedSpecsFinder;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -18,9 +20,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 final class FindChangedTestsCommand extends Command
 {
+    /**
+     * @param array<string, OutputFormatter> $formatters
+     */
     public function __construct(
         private readonly ChangedTestFinder $changedTestFinder,
         private readonly ?ChangedSpecsFinder $changedSpecsFinder = null,
+        private readonly array $formatters = [],
     ) {
         parent::__construct();
     }
@@ -41,6 +47,14 @@ final class FindChangedTestsCommand extends Command
             InputOption::VALUE_REQUIRED,
             'Directory containing spec/requirement files',
         );
+
+        $this->addOption(
+            'format',
+            'f',
+            InputOption::VALUE_REQUIRED,
+            'Output format (table, json)',
+            'table',
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -48,22 +62,21 @@ final class FindChangedTestsCommand extends Command
         /** @var string $branch */
         $branch = $input->getOption('branch');
 
+        /** @var string $format */
+        $format = $input->getOption('format');
+
         $changedTests = $this->changedTestFinder->findChangedTests($branch);
 
-        foreach ($changedTests as $changedTest) {
-            $output->writeln($changedTest->getFullyQualifiedName());
-        }
-
+        $changedSpecs = [];
         /** @var string|null $specsDir */
         $specsDir = $input->getOption('specs-dir');
 
         if (null !== $specsDir && null !== $this->changedSpecsFinder) {
             $changedSpecs = $this->changedSpecsFinder->findChangedSpecs($branch, $specsDir);
-
-            foreach ($changedSpecs as $changedSpec) {
-                $output->writeln($changedSpec->getFormattedOutput());
-            }
         }
+
+        $formatter = $this->formatters[$format] ?? new TableOutputFormatter();
+        $formatter->format($changedTests, $changedSpecs, $output);
 
         return Command::SUCCESS;
     }

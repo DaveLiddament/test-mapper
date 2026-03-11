@@ -21,4 +21,20 @@ final class ChangedTestMethodTest extends TestCase
         self::assertSame('it_works', $method->methodName);
         self::assertSame('App\\Tests\\FooTest::it_works', $method->getFullyQualifiedName());
     }
+
+    #[Test]
+    public function itStoresTicketIds(): void
+    {
+        $method = new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', ['JIRA-123']);
+
+        self::assertSame(['JIRA-123'], $method->ticketIds);
+    }
+
+    #[Test]
+    public function itDefaultsToEmptyTicketIds(): void
+    {
+        $method = new ChangedTestMethod('App\\Tests\\FooTest', 'it_works');
+
+        self::assertSame([], $method->ticketIds);
+    }
 }

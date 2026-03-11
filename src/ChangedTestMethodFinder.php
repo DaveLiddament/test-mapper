@@ -36,6 +36,7 @@ final readonly class ChangedTestMethodFinder implements ChangedTestFinder
                     $changedTestMethods[] = new ChangedTestMethod(
                         $testMethod->fullyQualifiedClassName,
                         $testMethod->methodName,
+                        $testMethod->ticketIds,
                     );
                     continue;
                 }
@@ -45,6 +46,7 @@ final readonly class ChangedTestMethodFinder implements ChangedTestFinder
                         $changedTestMethods[] = new ChangedTestMethod(
                             $testMethod->fullyQualifiedClassName,
                             $testMethod->methodName,
+                            $testMethod->ticketIds,
                         );
                         /** @infection-ignore-all Equivalent mutant: `continue` on inner loop produces same result, just doesn't short-circuit */
                         break;

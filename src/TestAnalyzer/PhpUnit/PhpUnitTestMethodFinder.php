@@ -21,6 +21,7 @@ final class PhpUnitTestMethodFinder implements TestMethodFinder
 {
     private const string TEST_ATTRIBUTE = 'PHPUnit\\Framework\\Attributes\\Test';
     private const string DATA_PROVIDER_ATTRIBUTE = 'PHPUnit\\Framework\\Attributes\\DataProvider';
+    private const string TICKET_ATTRIBUTE = 'PHPUnit\\Framework\\Attributes\\Ticket';
 
     /**
      * @return list<TestMethod>
@@ -90,6 +91,7 @@ final class PhpUnitTestMethodFinder implements TestMethodFinder
                 $endLine = $method->getEndLine();
                 $providerNames = $this->getDataProviderNames($method);
                 $dependentRanges = $this->getDependentRanges($providerNames, $methodsByName);
+                $ticketIds = $this->getTicketIds($method);
 
                 $testMethods[] = new TestMethod(
                     $fqcn,
@@ -98,6 +100,7 @@ final class PhpUnitTestMethodFinder implements TestMethodFinder
                     $endLine,
                     $filePath,
                     $dependentRanges,
+                    $ticketIds,
                 );
             }
         }
@@ -135,6 +138,27 @@ final class PhpUnitTestMethodFinder implements TestMethodFinder
         }
 
         return $names;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function getTicketIds(ClassMethod $method): array
+    {
+        $ticketIds = [];
+
+        foreach ($method->attrGroups as $attrGroup) {
+            foreach ($attrGroup->attrs as $attr) {
+                if (self::TICKET_ATTRIBUTE === $attr->name->toString()) {
+                    $arg = $attr->args[0]->value ?? null;
+                    if ($arg instanceof String_) {
+                        $ticketIds[] = $arg->value;
+                    }
+                }
+            }
+        }
+
+        return $ticketIds;
     }
 
     /**

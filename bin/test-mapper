@@ -7,6 +7,8 @@ use DaveLiddament\TestMapper\ChangedTestMethodFinder;
 use DaveLiddament\TestMapper\Command\FindChangedTestsCommand;
 use DaveLiddament\TestMapper\Diff\Git\GitDiffParser;
 use DaveLiddament\TestMapper\Diff\Git\GitDiffProvider;
+use DaveLiddament\TestMapper\Output\JsonOutputFormatter;
+use DaveLiddament\TestMapper\Output\TableOutputFormatter;
 use DaveLiddament\TestMapper\Specs\GitChangedSpecsFinder;
 use DaveLiddament\TestMapper\Specs\NameStatusDiffParser;
 use DaveLiddament\TestMapper\TestAnalyzer\PhpUnit\PhpUnitTestMethodFinder;
@@ -35,7 +37,12 @@ $nameStatusParser = new NameStatusDiffParser();
 $changedSpecsFinder = new GitChangedSpecsFinder($workingDirectory, $nameStatusParser);
 
 $application = new Application('test-mapper', '1.0.0');
-$command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder);
+$formatters = [
+    'table' => new TableOutputFormatter(),
+    'json' => new JsonOutputFormatter(),
+];
+
+$command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $formatters);
 $application->add($command);
 $application->setDefaultCommand((string) $command->getName(), true);
 $application->run();

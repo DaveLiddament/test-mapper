@@ -6,9 +6,13 @@ namespace DaveLiddament\TestMapper\Model;
 
 final readonly class ChangedTestMethod
 {
+    /**
+     * @param list<string> $ticketIds
+     */
     public function __construct(
         public string $fullyQualifiedClassName,
         public string $methodName,
+        public array $ticketIds = [],
     ) {
     }
 

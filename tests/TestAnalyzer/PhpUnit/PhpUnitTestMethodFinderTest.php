@@ -152,6 +152,34 @@ final class PhpUnitTestMethodFinderTest extends TestCase
         self::assertSame([], $result[1]->dependentRanges);
     }
 
+    #[Test]
+    public function itExtractsSingleTicketId(): void
+    {
+        $result = $this->finder->findTestMethods($this->fixturePath('TicketTestClass.php'));
+
+        self::assertCount(3, $result);
+        self::assertSame('itHasSingleTicket', $result[0]->methodName);
+        self::assertSame(['JIRA-123'], $result[0]->ticketIds);
+    }
+
+    #[Test]
+    public function itExtractsMultipleTicketIds(): void
+    {
+        $result = $this->finder->findTestMethods($this->fixturePath('TicketTestClass.php'));
+
+        self::assertSame('itHasMultipleTickets', $result[1]->methodName);
+        self::assertSame(['JIRA-456', 'JIRA-789'], $result[1]->ticketIds);
+    }
+
+    #[Test]
+    public function itReturnsEmptyTicketIdsWhenNoTicketAttribute(): void
+    {
+        $result = $this->finder->findTestMethods($this->fixturePath('TicketTestClass.php'));
+
+        self::assertSame('itHasNoTicket', $result[2]->methodName);
+        self::assertSame([], $result[2]->ticketIds);
+    }
+
     private function fixturePath(string $filename): string
     {
         return __DIR__.'/../../Fixtures/TestAnalyzer/'.$filename;
