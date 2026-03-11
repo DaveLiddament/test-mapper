@@ -66,7 +66,12 @@ final class NameStatusDiffParser
     private function stripPrefix(string $path, string $prefix): string
     {
         if (str_starts_with($path, $prefix)) {
-            return substr($path, strlen($prefix));
+            $path = substr($path, strlen($prefix));
+        }
+
+        $extension = pathinfo($path, \PATHINFO_EXTENSION);
+        if ('' !== $extension) {
+            $path = substr($path, 0, -strlen($extension) - 1);
         }
 
         return $path;

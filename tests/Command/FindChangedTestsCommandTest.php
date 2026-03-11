@@ -94,7 +94,7 @@ final class FindChangedTestsCommandTest extends TestCase
             ->method('findChangedSpecs')
             ->with('main', 'specs')
             ->willReturn([
-                new ChangedSpecFile(FileChangeType::Added, 'auth/login.md'),
+                new ChangedSpecFile(FileChangeType::Added, 'auth/login'),
             ]);
 
         $command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $this->formatters);
@@ -104,7 +104,7 @@ final class FindChangedTestsCommandTest extends TestCase
         self::assertSame(0, $tester->getStatusCode());
         $output = $tester->getDisplay();
         self::assertStringContainsString('added', $output);
-        self::assertStringContainsString('auth/login.md', $output);
+        self::assertStringContainsString('auth/login', $output);
     }
 
     #[Test]
@@ -135,7 +135,7 @@ final class FindChangedTestsCommandTest extends TestCase
 
         $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
         $changedSpecsFinder->method('findChangedSpecs')->willReturn([
-            new ChangedSpecFile(FileChangeType::Modified, 'auth/login.md'),
+            new ChangedSpecFile(FileChangeType::Modified, 'auth/login'),
         ]);
 
         $command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $this->formatters);
@@ -144,7 +144,7 @@ final class FindChangedTestsCommandTest extends TestCase
 
         $output = $tester->getDisplay();
         $testPos = strpos($output, 'App\\Tests\\FooTest::it_works');
-        $specPos = strpos($output, 'auth/login.md');
+        $specPos = strpos($output, 'auth/login');
         self::assertNotFalse($testPos);
         self::assertNotFalse($specPos);
         self::assertGreaterThan($testPos, $specPos);
@@ -158,9 +158,9 @@ final class FindChangedTestsCommandTest extends TestCase
 
         $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
         $changedSpecsFinder->method('findChangedSpecs')->willReturn([
-            new ChangedSpecFile(FileChangeType::Added, 'new-feature.md'),
-            new ChangedSpecFile(FileChangeType::Modified, 'existing.md'),
-            new ChangedSpecFile(FileChangeType::Deleted, 'removed.md'),
+            new ChangedSpecFile(FileChangeType::Added, 'new-feature'),
+            new ChangedSpecFile(FileChangeType::Modified, 'existing'),
+            new ChangedSpecFile(FileChangeType::Deleted, 'removed'),
         ]);
 
         $command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $this->formatters);
@@ -168,9 +168,9 @@ final class FindChangedTestsCommandTest extends TestCase
         $tester->execute(['--specs-dir' => 'specs']);
 
         $output = $tester->getDisplay();
-        self::assertStringContainsString('new-feature.md', $output);
-        self::assertStringContainsString('existing.md', $output);
-        self::assertStringContainsString('removed.md', $output);
+        self::assertStringContainsString('new-feature', $output);
+        self::assertStringContainsString('existing', $output);
+        self::assertStringContainsString('removed', $output);
     }
 
     #[Test]
@@ -181,7 +181,7 @@ final class FindChangedTestsCommandTest extends TestCase
 
         $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
         $changedSpecsFinder->method('findChangedSpecs')->willReturn([
-            new ChangedSpecFile(FileChangeType::Modified, 'auth/login/flow.md'),
+            new ChangedSpecFile(FileChangeType::Modified, 'auth/login/flow'),
         ]);
 
         $command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $this->formatters);
@@ -189,7 +189,7 @@ final class FindChangedTestsCommandTest extends TestCase
         $tester->execute(['--specs-dir' => 'specs']);
 
         $output = $tester->getDisplay();
-        self::assertStringContainsString('auth/login/flow.md', $output);
+        self::assertStringContainsString('auth/login/flow', $output);
     }
 
     #[Test]
@@ -239,7 +239,7 @@ final class FindChangedTestsCommandTest extends TestCase
 
         $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
         $changedSpecsFinder->method('findChangedSpecs')->willReturn([
-            new ChangedSpecFile(FileChangeType::Deleted, 'old-feature.md'),
+            new ChangedSpecFile(FileChangeType::Deleted, 'old-feature'),
         ]);
 
         $command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $this->formatters);
@@ -248,7 +248,7 @@ final class FindChangedTestsCommandTest extends TestCase
 
         $output = $tester->getDisplay();
         self::assertStringContainsString('deleted', $output);
-        self::assertStringContainsString('old-feature.md', $output);
+        self::assertStringContainsString('old-feature', $output);
     }
 
     #[Test]
@@ -261,7 +261,7 @@ final class FindChangedTestsCommandTest extends TestCase
 
         $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
         $changedSpecsFinder->method('findChangedSpecs')->willReturn([
-            new ChangedSpecFile(FileChangeType::Added, 'feature.md'),
+            new ChangedSpecFile(FileChangeType::Added, 'feature'),
         ]);
 
         $command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $this->formatters);
@@ -273,7 +273,7 @@ final class FindChangedTestsCommandTest extends TestCase
         self::assertSame('App\\Tests\\FooTest::it_works', $data['tests'][0]['name']);
         self::assertSame(['JIRA-123'], $data['tests'][0]['ticketIds']);
         self::assertSame('added', $data['specs'][0]['changeType']);
-        self::assertSame('feature.md', $data['specs'][0]['filePath']);
+        self::assertSame('feature', $data['specs'][0]['filePath']);
     }
 
     #[Test]

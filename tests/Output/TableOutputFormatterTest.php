@@ -46,7 +46,7 @@ final class TableOutputFormatterTest extends TestCase
     {
         $this->formatter->format(
             [],
-            [new ChangedSpecFile(FileChangeType::Added, 'auth/login.md')],
+            [new ChangedSpecFile(FileChangeType::Added, 'auth/login')],
             $this->output,
         );
 
@@ -54,7 +54,7 @@ final class TableOutputFormatterTest extends TestCase
         self::assertStringContainsString('Change Type', $display);
         self::assertStringContainsString('File Path', $display);
         self::assertStringContainsString('added', $display);
-        self::assertStringContainsString('auth/login.md', $display);
+        self::assertStringContainsString('auth/login', $display);
     }
 
     #[Test]
@@ -97,12 +97,12 @@ final class TableOutputFormatterTest extends TestCase
     {
         $this->formatter->format(
             [new ChangedTestMethod('App\\Tests\\FooTest', 'it_works')],
-            [new ChangedSpecFile(FileChangeType::Modified, 'spec.md')],
+            [new ChangedSpecFile(FileChangeType::Modified, 'spec')],
             $this->output,
         );
 
         $display = $this->output->fetch();
         self::assertStringContainsString('App\\Tests\\FooTest::it_works', $display);
-        self::assertStringContainsString('spec.md', $display);
+        self::assertStringContainsString('spec', $display);
     }
 }

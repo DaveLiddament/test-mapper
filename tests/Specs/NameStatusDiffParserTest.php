@@ -34,7 +34,7 @@ final class NameStatusDiffParserTest extends TestCase
         $result = $this->parser->parse("A\tspecs/auth/login.md", 'specs');
 
         self::assertCount(1, $result);
-        self::assertChangedSpecFile(FileChangeType::Added, 'auth/login.md', $result[0]);
+        self::assertChangedSpecFile(FileChangeType::Added, 'auth/login', $result[0]);
     }
 
     #[Test]
@@ -43,7 +43,7 @@ final class NameStatusDiffParserTest extends TestCase
         $result = $this->parser->parse("M\tspecs/auth/login.md", 'specs');
 
         self::assertCount(1, $result);
-        self::assertChangedSpecFile(FileChangeType::Modified, 'auth/login.md', $result[0]);
+        self::assertChangedSpecFile(FileChangeType::Modified, 'auth/login', $result[0]);
     }
 
     #[Test]
@@ -52,7 +52,7 @@ final class NameStatusDiffParserTest extends TestCase
         $result = $this->parser->parse("D\tspecs/auth/login.md", 'specs');
 
         self::assertCount(1, $result);
-        self::assertChangedSpecFile(FileChangeType::Deleted, 'auth/login.md', $result[0]);
+        self::assertChangedSpecFile(FileChangeType::Deleted, 'auth/login', $result[0]);
     }
 
     #[Test]
@@ -61,8 +61,8 @@ final class NameStatusDiffParserTest extends TestCase
         $result = $this->parser->parse("R100\tspecs/old/path.md\tspecs/new/path.md", 'specs');
 
         self::assertCount(2, $result);
-        self::assertChangedSpecFile(FileChangeType::Deleted, 'old/path.md', $result[0]);
-        self::assertChangedSpecFile(FileChangeType::Added, 'new/path.md', $result[1]);
+        self::assertChangedSpecFile(FileChangeType::Deleted, 'old/path', $result[0]);
+        self::assertChangedSpecFile(FileChangeType::Added, 'new/path', $result[1]);
     }
 
     #[Test]
@@ -71,7 +71,7 @@ final class NameStatusDiffParserTest extends TestCase
         $result = $this->parser->parse("C100\tspecs/source.md\tspecs/dest.md", 'specs');
 
         self::assertCount(1, $result);
-        self::assertChangedSpecFile(FileChangeType::Added, 'dest.md', $result[0]);
+        self::assertChangedSpecFile(FileChangeType::Added, 'dest', $result[0]);
     }
 
     #[Test]
@@ -80,7 +80,7 @@ final class NameStatusDiffParserTest extends TestCase
         $result = $this->parser->parse("T\tspecs/path.md", 'specs');
 
         self::assertCount(1, $result);
-        self::assertChangedSpecFile(FileChangeType::Modified, 'path.md', $result[0]);
+        self::assertChangedSpecFile(FileChangeType::Modified, 'path', $result[0]);
     }
 
     #[Test]
@@ -95,9 +95,9 @@ final class NameStatusDiffParserTest extends TestCase
         $result = $this->parser->parse($output, 'specs');
 
         self::assertCount(3, $result);
-        self::assertChangedSpecFile(FileChangeType::Added, 'new-file.md', $result[0]);
-        self::assertChangedSpecFile(FileChangeType::Modified, 'existing.md', $result[1]);
-        self::assertChangedSpecFile(FileChangeType::Deleted, 'removed.md', $result[2]);
+        self::assertChangedSpecFile(FileChangeType::Added, 'new-file', $result[0]);
+        self::assertChangedSpecFile(FileChangeType::Modified, 'existing', $result[1]);
+        self::assertChangedSpecFile(FileChangeType::Deleted, 'removed', $result[2]);
     }
 
     #[Test]
@@ -116,7 +116,7 @@ final class NameStatusDiffParserTest extends TestCase
         $result = $this->parser->parse($output, 'specs');
 
         self::assertCount(1, $result);
-        self::assertChangedSpecFile(FileChangeType::Added, 'file.md', $result[0]);
+        self::assertChangedSpecFile(FileChangeType::Added, 'file', $result[0]);
     }
 
     #[Test]
@@ -125,7 +125,7 @@ final class NameStatusDiffParserTest extends TestCase
         $result = $this->parser->parse("M\tspecs/sub/deep/file.md", 'specs');
 
         self::assertCount(1, $result);
-        self::assertChangedSpecFile(FileChangeType::Modified, 'sub/deep/file.md', $result[0]);
+        self::assertChangedSpecFile(FileChangeType::Modified, 'sub/deep/file', $result[0]);
     }
 
     #[Test]
@@ -134,7 +134,7 @@ final class NameStatusDiffParserTest extends TestCase
         $result = $this->parser->parse("A\tspecs/file.md", 'specs/');
 
         self::assertCount(1, $result);
-        self::assertChangedSpecFile(FileChangeType::Added, 'file.md', $result[0]);
+        self::assertChangedSpecFile(FileChangeType::Added, 'file', $result[0]);
     }
 
     #[Test]
@@ -143,7 +143,7 @@ final class NameStatusDiffParserTest extends TestCase
         $result = $this->parser->parse("A\tother/file.md", 'specs');
 
         self::assertCount(1, $result);
-        self::assertChangedSpecFile(FileChangeType::Added, 'other/file.md', $result[0]);
+        self::assertChangedSpecFile(FileChangeType::Added, 'other/file', $result[0]);
     }
 
     #[Test]
@@ -161,7 +161,7 @@ final class NameStatusDiffParserTest extends TestCase
         $result = $this->parser->parse($output, 'specs');
 
         self::assertCount(1, $result);
-        self::assertChangedSpecFile(FileChangeType::Added, 'file.md', $result[0]);
+        self::assertChangedSpecFile(FileChangeType::Added, 'file', $result[0]);
     }
 
     private static function assertChangedSpecFile(

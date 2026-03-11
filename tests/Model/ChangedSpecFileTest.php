@@ -16,21 +16,21 @@ final class ChangedSpecFileTest extends TestCase
     #[Test]
     public function itFormatsAddedFile(): void
     {
-        $file = new ChangedSpecFile(FileChangeType::Added, 'auth/login.md');
-        self::assertSame('[added] auth/login.md', $file->getFormattedOutput());
+        $file = new ChangedSpecFile(FileChangeType::Added, 'auth/login');
+        self::assertSame('[added] auth/login', $file->getFormattedOutput());
     }
 
     #[Test]
     public function itFormatsModifiedFile(): void
     {
-        $file = new ChangedSpecFile(FileChangeType::Modified, 'auth/login.md');
-        self::assertSame('[modified] auth/login.md', $file->getFormattedOutput());
+        $file = new ChangedSpecFile(FileChangeType::Modified, 'auth/login');
+        self::assertSame('[modified] auth/login', $file->getFormattedOutput());
     }
 
     #[Test]
     public function itFormatsDeletedFile(): void
     {
-        $file = new ChangedSpecFile(FileChangeType::Deleted, 'auth/login.md');
-        self::assertSame('[deleted] auth/login.md', $file->getFormattedOutput());
+        $file = new ChangedSpecFile(FileChangeType::Deleted, 'auth/login');
+        self::assertSame('[deleted] auth/login', $file->getFormattedOutput());
     }
 }

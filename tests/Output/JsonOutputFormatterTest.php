@@ -30,7 +30,7 @@ final class JsonOutputFormatterTest extends TestCase
     {
         $this->formatter->format(
             [new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', ['JIRA-123'])],
-            [new ChangedSpecFile(FileChangeType::Added, 'auth/login.md')],
+            [new ChangedSpecFile(FileChangeType::Added, 'auth/login')],
             $this->output,
         );
 
@@ -42,7 +42,7 @@ final class JsonOutputFormatterTest extends TestCase
 
         self::assertCount(1, $data['specs']);
         self::assertSame('added', $data['specs'][0]['changeType']);
-        self::assertSame('auth/login.md', $data['specs'][0]['filePath']);
+        self::assertSame('auth/login', $data['specs'][0]['filePath']);
     }
 
     #[Test]
