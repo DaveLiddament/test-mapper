@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace DaveLiddament\TestMapper\Tests\TestAnalyzer\PhpUnit;
 
 use DaveLiddament\TestMapper\Exception\ParseException;
+use DaveLiddament\TestMapper\Model\LineRange;
+use DaveLiddament\TestMapper\Model\TestMethod;
 use DaveLiddament\TestMapper\TestAnalyzer\PhpUnit\PhpUnitTestMethodFinder;
+use DaveLiddament\TestMapper\Tests\Fixtures\TestAnalyzer\SimpleTestClass;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -34,10 +37,10 @@ final class PhpUnitTestMethodFinderTest extends TestCase
     {
         $result = $this->finder->findTestMethods($this->fixturePath('SimpleTestClass.php'));
 
-        self::assertCount(2, $result);
-        self::assertSame('DaveLiddament\TestMapper\Tests\Fixtures\TestAnalyzer\SimpleTestClass', $result[0]->fullyQualifiedClassName);
-        self::assertSame('itDoesSomething', $result[0]->methodName);
-        self::assertSame('itDoesSomethingElse', $result[1]->methodName);
+        $this->assertTestMethods([
+            new ExpectedTestMethod(fullyQualifiedClassName: SimpleTestClass::class, methodName: 'itDoesSomething'),
+            new ExpectedTestMethod(methodName: 'itDoesSomethingElse'),
+        ], $result);
     }
 
     #[Test]
@@ -61,11 +64,10 @@ final class PhpUnitTestMethodFinderTest extends TestCase
     {
         $result = $this->finder->findTestMethods($this->fixturePath('MultipleClassesFile.php'));
 
-        self::assertCount(2, $result);
-        self::assertSame('DaveLiddament\TestMapper\Tests\Fixtures\TestAnalyzer\FirstTestClass', $result[0]->fullyQualifiedClassName);
-        self::assertSame('firstTest', $result[0]->methodName);
-        self::assertSame('DaveLiddament\TestMapper\Tests\Fixtures\TestAnalyzer\SecondTestClass', $result[1]->fullyQualifiedClassName);
-        self::assertSame('secondTest', $result[1]->methodName);
+        $this->assertTestMethods([
+            new ExpectedTestMethod(fullyQualifiedClassName: 'DaveLiddament\TestMapper\Tests\Fixtures\TestAnalyzer\FirstTestClass', methodName: 'firstTest'),
+            new ExpectedTestMethod(fullyQualifiedClassName: 'DaveLiddament\TestMapper\Tests\Fixtures\TestAnalyzer\SecondTestClass', methodName: 'secondTest'),
+        ], $result);
     }
 
     #[Test]
@@ -73,17 +75,10 @@ final class PhpUnitTestMethodFinderTest extends TestCase
     {
         $result = $this->finder->findTestMethods($this->fixturePath('AttributeTestClass.php'));
 
-        self::assertCount(2, $result);
-
-        // First method: docblock starts at line 13, method ends at line 21
-        self::assertSame('itHasDataProvider', $result[0]->methodName);
-        self::assertSame(13, $result[0]->startLine);
-        self::assertSame(21, $result[0]->endLine);
-
-        // Second method: no docblock, #[Test] attribute starts at line 23
-        self::assertSame('itHasNoDocblock', $result[1]->methodName);
-        self::assertSame(23, $result[1]->startLine);
-        self::assertSame(28, $result[1]->endLine);
+        $this->assertTestMethods([
+            new ExpectedTestMethod(methodName: 'itHasDataProvider', startLine: 13, endLine: 21),
+            new ExpectedTestMethod(methodName: 'itHasNoDocblock', startLine: 23, endLine: 28),
+        ], $result);
     }
 
     #[Test]
@@ -92,7 +87,10 @@ final class PhpUnitTestMethodFinderTest extends TestCase
         $path = $this->fixturePath('SimpleTestClass.php');
         $result = $this->finder->findTestMethods($path);
 
-        self::assertSame($path, $result[0]->filePath);
+        $this->assertTestMethods([
+            new ExpectedTestMethod(filePath: $path),
+            new ExpectedTestMethod(),
+        ], $result);
     }
 
     #[Test]
@@ -100,17 +98,10 @@ final class PhpUnitTestMethodFinderTest extends TestCase
     {
         $result = $this->finder->findTestMethods($this->fixturePath('DataProviderTestClass.php'));
 
-        self::assertCount(2, $result);
-
-        // Test with provider has dependent range pointing to additionProvider
-        self::assertSame('itAdds', $result[0]->methodName);
-        self::assertCount(1, $result[0]->dependentRanges);
-        self::assertSame(26, $result[0]->dependentRanges[0]->startLine);
-        self::assertSame(33, $result[0]->dependentRanges[0]->endLine);
-
-        // Test without provider has no dependent ranges
-        self::assertSame('itHasNoProvider', $result[1]->methodName);
-        self::assertSame([], $result[1]->dependentRanges);
+        $this->assertTestMethods([
+            new ExpectedTestMethod(methodName: 'itAdds', dependentRanges: [new LineRange(26, 33)]),
+            new ExpectedTestMethod(methodName: 'itHasNoProvider', dependentRanges: []),
+        ], $result);
     }
 
     #[Test]
@@ -118,18 +109,10 @@ final class PhpUnitTestMethodFinderTest extends TestCase
     {
         $result = $this->finder->findTestMethods($this->fixturePath('AttributeTestClass.php'));
 
-        self::assertCount(2, $result);
-
-        // Both tests share the same data provider
-        self::assertSame('itHasDataProvider', $result[0]->methodName);
-        self::assertCount(1, $result[0]->dependentRanges);
-        self::assertSame(30, $result[0]->dependentRanges[0]->startLine);
-        self::assertSame(37, $result[0]->dependentRanges[0]->endLine);
-
-        self::assertSame('itHasNoDocblock', $result[1]->methodName);
-        self::assertCount(1, $result[1]->dependentRanges);
-        self::assertSame(30, $result[1]->dependentRanges[0]->startLine);
-        self::assertSame(37, $result[1]->dependentRanges[0]->endLine);
+        $this->assertTestMethods([
+            new ExpectedTestMethod(methodName: 'itHasDataProvider', dependentRanges: [new LineRange(30, 37)]),
+            new ExpectedTestMethod(methodName: 'itHasNoDocblock', dependentRanges: [new LineRange(30, 37)]),
+        ], $result);
     }
 
     #[Test]
@@ -137,9 +120,9 @@ final class PhpUnitTestMethodFinderTest extends TestCase
     {
         $result = $this->finder->findTestMethods($this->fixturePath('MultipleDataProviderTestClass.php'));
 
-        self::assertCount(1, $result);
-        self::assertSame('itHasMultipleProviders', $result[0]->methodName);
-        self::assertCount(2, $result[0]->dependentRanges);
+        $this->assertTestMethods([
+            new ExpectedTestMethod(methodName: 'itHasMultipleProviders', dependentRanges: [new LineRange(21, 28), new LineRange(30, 37)]),
+        ], $result);
     }
 
     #[Test]
@@ -147,37 +130,22 @@ final class PhpUnitTestMethodFinderTest extends TestCase
     {
         $result = $this->finder->findTestMethods($this->fixturePath('SimpleTestClass.php'));
 
-        self::assertCount(2, $result);
-        self::assertSame([], $result[0]->dependentRanges);
-        self::assertSame([], $result[1]->dependentRanges);
+        $this->assertTestMethods([
+            new ExpectedTestMethod(dependentRanges: []),
+            new ExpectedTestMethod(dependentRanges: []),
+        ], $result);
     }
 
     #[Test]
-    public function itExtractsSingleTicketId(): void
+    public function itExtractsTicketIds(): void
     {
         $result = $this->finder->findTestMethods($this->fixturePath('TicketTestClass.php'));
 
-        self::assertCount(3, $result);
-        self::assertSame('itHasSingleTicket', $result[0]->methodName);
-        self::assertSame(['JIRA-123'], $result[0]->ticketIds);
-    }
-
-    #[Test]
-    public function itExtractsMultipleTicketIds(): void
-    {
-        $result = $this->finder->findTestMethods($this->fixturePath('TicketTestClass.php'));
-
-        self::assertSame('itHasMultipleTickets', $result[1]->methodName);
-        self::assertSame(['JIRA-456', 'JIRA-789'], $result[1]->ticketIds);
-    }
-
-    #[Test]
-    public function itReturnsEmptyTicketIdsWhenNoTicketAttribute(): void
-    {
-        $result = $this->finder->findTestMethods($this->fixturePath('TicketTestClass.php'));
-
-        self::assertSame('itHasNoTicket', $result[2]->methodName);
-        self::assertSame([], $result[2]->ticketIds);
+        $this->assertTestMethods([
+            new ExpectedTestMethod(methodName: 'itHasSingleTicket', ticketIds: ['JIRA-123']),
+            new ExpectedTestMethod(methodName: 'itHasMultipleTickets', ticketIds: ['JIRA-456', 'JIRA-789']),
+            new ExpectedTestMethod(methodName: 'itHasNoTicket', ticketIds: []),
+        ], $result);
     }
 
     #[Test]
@@ -185,17 +153,11 @@ final class PhpUnitTestMethodFinderTest extends TestCase
     {
         $result = $this->finder->findTestMethods($this->fixturePath('ClassLevelTicketTestClass.php'));
 
-        self::assertSame('itInheritsClassTicket', $result[0]->methodName);
-        self::assertSame(['auth/login'], $result[0]->ticketIds);
-    }
-
-    #[Test]
-    public function itMergesClassAndMethodLevelTickets(): void
-    {
-        $result = $this->finder->findTestMethods($this->fixturePath('ClassLevelTicketTestClass.php'));
-
-        self::assertSame('itMergesClassAndMethodTickets', $result[1]->methodName);
-        self::assertSame(['auth/login', 'auth/session'], $result[1]->ticketIds);
+        $this->assertTestMethods([
+            new ExpectedTestMethod(methodName: 'itInheritsClassTicket', ticketIds: ['auth/login']),
+            new ExpectedTestMethod(methodName: 'itMergesClassAndMethodTickets', ticketIds: ['auth/login', 'auth/session']),
+            new ExpectedTestMethod(methodName: 'itWorksWithDataProvider', ticketIds: ['auth/login'], dependentRanges: [new LineRange(35, 42)]),
+        ], $result);
     }
 
     #[Test]
@@ -203,18 +165,50 @@ final class PhpUnitTestMethodFinderTest extends TestCase
     {
         $result = $this->finder->findTestMethods($this->fixturePath('MultipleClassLevelTicketsTestClass.php'));
 
-        self::assertCount(1, $result);
-        self::assertSame(['auth/login', 'auth/session'], $result[0]->ticketIds);
+        $this->assertTestMethods([
+            new ExpectedTestMethod(ticketIds: ['auth/login', 'auth/session']),
+        ], $result);
     }
 
-    #[Test]
-    public function itInheritsClassLevelTicketWithDataProvider(): void
+    /**
+     * @param list<ExpectedTestMethod> $expectedTestMethods
+     * @param list<TestMethod> $actualTestMethods
+     */
+    private function assertTestMethods(array $expectedTestMethods, array $actualTestMethods): void
     {
-        $result = $this->finder->findTestMethods($this->fixturePath('ClassLevelTicketTestClass.php'));
+        self::assertCount(count($expectedTestMethods), $actualTestMethods);
 
-        self::assertSame('itWorksWithDataProvider', $result[2]->methodName);
-        self::assertSame(['auth/login'], $result[2]->ticketIds);
-        self::assertCount(1, $result[2]->dependentRanges);
+        foreach ($expectedTestMethods as $index => $expected) {
+            $actual = $actualTestMethods[$index];
+
+            if (null !== $expected->fullyQualifiedClassName) {
+                self::assertSame($expected->fullyQualifiedClassName, $actual->fullyQualifiedClassName, "fullyQualifiedClassName mismatch at index {$index}");
+            }
+
+            if (null !== $expected->methodName) {
+                self::assertSame($expected->methodName, $actual->methodName, "methodName mismatch at index {$index}");
+            }
+
+            if (null !== $expected->startLine) {
+                self::assertSame($expected->startLine, $actual->startLine, "startLine mismatch at index {$index}");
+            }
+
+            if (null !== $expected->endLine) {
+                self::assertSame($expected->endLine, $actual->endLine, "endLine mismatch at index {$index}");
+            }
+
+            if (null !== $expected->filePath) {
+                self::assertSame($expected->filePath, $actual->filePath, "filePath mismatch at index {$index}");
+            }
+
+            if (null !== $expected->dependentRanges) {
+                self::assertEquals($expected->dependentRanges, $actual->dependentRanges, "dependentRanges mismatch at index {$index}");
+            }
+
+            if (null !== $expected->ticketIds) {
+                self::assertSame($expected->ticketIds, $actual->ticketIds, "ticketIds mismatch at index {$index}");
+            }
+        }
     }
 
     private function fixturePath(string $filename): string
