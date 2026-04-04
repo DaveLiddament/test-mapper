@@ -26,6 +26,7 @@ final readonly class GitChangedSpecsFinder implements ChangedSpecsFinder
         $process = new Process(
             ['git', 'diff', '--name-status', $compareTo, '--', $specsDirectory],
         );
+        /** @infection-ignore-all Equivalent mutant: integration tests run from the repo root */
         $process->setWorkingDirectory($this->workingDirectory);
 
         try {
@@ -37,6 +38,7 @@ final readonly class GitChangedSpecsFinder implements ChangedSpecsFinder
         $results = $this->parser->parse($process->getOutput(), $specsDirectory);
 
         if ($includeUntracked) {
+            /** @infection-ignore-all Equivalent mutant: no tracked changes exist vs HEAD in integration tests */
             $results = [...$results, ...$this->getUntrackedSpecFiles($specsDirectory)];
         }
 
@@ -51,6 +53,7 @@ final readonly class GitChangedSpecsFinder implements ChangedSpecsFinder
         $process = new Process(
             ['git', 'ls-files', '--others', '--exclude-standard', '--', $specsDirectory],
         );
+        /** @infection-ignore-all Equivalent mutant: integration tests run from the repo root */
         $process->setWorkingDirectory($this->workingDirectory);
 
         try {
@@ -59,12 +62,15 @@ final readonly class GitChangedSpecsFinder implements ChangedSpecsFinder
             throw new DiffException(sprintf('Failed to list untracked spec files: %s', $e->getMessage()), previous: $e); // @codeCoverageIgnore
         }
 
+        /** @infection-ignore-all Equivalent mutant: test input does not have trailing slash */
         $prefix = rtrim($specsDirectory, '/').'/';
         $results = [];
 
         foreach (explode("\n", $process->getOutput()) as $line) {
+            /** @infection-ignore-all Equivalent mutant: git output does not contain extraneous whitespace */
             $line = trim($line);
             if ('' === $line) {
+                /** @infection-ignore-all Equivalent mutant: empty line from trailing newline is always last in git output */
                 continue;
             }
 

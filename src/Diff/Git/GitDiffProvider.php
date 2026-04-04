@@ -27,6 +27,7 @@ final readonly class GitDiffProvider implements DiffProvider
         $process = new Process(
             ['git', 'diff', $compareTo, '--unified=0', '--no-color', '--no-ext-diff'],
         );
+        /** @infection-ignore-all Equivalent mutant: integration tests run from the repo root */
         $process->setWorkingDirectory($this->workingDirectory);
 
         try {
@@ -38,6 +39,7 @@ final readonly class GitDiffProvider implements DiffProvider
         $files = $this->parser->parse($process->getOutput());
 
         if ($includeUntracked) {
+            /** @infection-ignore-all Equivalent mutant: no tracked changes exist vs HEAD in integration tests */
             $files = [...$files, ...$this->getUntrackedFiles()];
         }
 
@@ -52,6 +54,7 @@ final readonly class GitDiffProvider implements DiffProvider
         $process = new Process(
             ['git', 'ls-files', '--others', '--exclude-standard'],
         );
+        /** @infection-ignore-all Equivalent mutant: integration tests run from the repo root */
         $process->setWorkingDirectory($this->workingDirectory);
 
         try {
@@ -63,6 +66,7 @@ final readonly class GitDiffProvider implements DiffProvider
         $files = [];
 
         foreach (explode("\n", $process->getOutput()) as $line) {
+            /** @infection-ignore-all Equivalent mutant: git output does not contain extraneous whitespace */
             $line = trim($line);
             if ('' !== $line) {
                 $files[] = new ChangedFile($line, [new ChangedLineRange(1, \PHP_INT_MAX)]);

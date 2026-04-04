@@ -8,6 +8,7 @@ use DaveLiddament\TestMapper\Diff\Git\GitDiffParser;
 use DaveLiddament\TestMapper\Diff\Git\GitDiffProvider;
 use DaveLiddament\TestMapper\Exception\DiffException;
 use DaveLiddament\TestMapper\Model\ChangedFile;
+use DaveLiddament\TestMapper\Model\ChangedLineRange;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -44,6 +45,13 @@ final class GitDiffProviderTest extends TestCase
                 $result,
             );
             self::assertContains('untracked-test-fixture.php', $untrackedPaths);
+
+            $untrackedEntry = array_values(array_filter(
+                $result,
+                static fn (ChangedFile $f): bool => 'untracked-test-fixture.php' === $f->filePath,
+            ))[0];
+            self::assertCount(1, $untrackedEntry->changedLineRanges);
+            self::assertEquals(new ChangedLineRange(1, \PHP_INT_MAX), $untrackedEntry->changedLineRanges[0]);
         } finally {
             unlink($untrackedFile);
         }

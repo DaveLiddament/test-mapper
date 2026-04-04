@@ -33,7 +33,8 @@ final class GitChangedSpecsFinderTest extends TestCase
         $repoRoot = dirname(__DIR__, 2);
         $specsDir = $repoRoot.'/test-specs-fixture';
         mkdir($specsDir, 0777, true);
-        file_put_contents($specsDir.'/new-feature.md', '# New Feature');
+        file_put_contents($specsDir.'/feature-a.md', '# Feature A');
+        file_put_contents($specsDir.'/feature-b.md', '# Feature B');
 
         try {
             $finder = new GitChangedSpecsFinder($repoRoot, new NameStatusDiffParser());
@@ -43,9 +44,11 @@ final class GitChangedSpecsFinderTest extends TestCase
                 static fn (ChangedSpecFile $s): string => $s->filePath,
                 $result,
             );
-            self::assertContains('new-feature', $specPaths);
+            self::assertContains('feature-a', $specPaths);
+            self::assertContains('feature-b', $specPaths);
         } finally {
-            unlink($specsDir.'/new-feature.md');
+            unlink($specsDir.'/feature-a.md');
+            unlink($specsDir.'/feature-b.md');
             rmdir($specsDir);
         }
     }

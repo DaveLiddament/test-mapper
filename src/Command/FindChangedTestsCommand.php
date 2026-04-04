@@ -74,6 +74,7 @@ final class FindChangedTestsCommand extends Command
         /** @var string $format */
         $format = $input->getOption('format');
 
+        /** @infection-ignore-all Equivalent mutant: getOption for VALUE_NONE already returns bool */
         $includeUntracked = (bool) $input->getOption('include-untracked');
 
         $changedTests = $this->changedTestFinder->findChangedTests($branch, $includeUntracked);
