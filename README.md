@@ -102,8 +102,34 @@ composer require dave-liddament/test-mapper
 |---|---|---|---|
 | `--branch` | `-b` | `main` | Base branch to diff against |
 | `--specs-dir` | `-d` | _(none)_ | Specs directory (enables classification) |
-| `--format` | `-f` | `table` | Output format: `table` or `json` |
+| `--format` | `-f` | `table` | Output format: `table`, `json`, or `specs` |
 | `--include-untracked` | `-u` | _(off)_ | Also scan untracked files (not yet `git add`ed) |
+
+## Spec Reviewer
+
+The `spec-reviewer` script generates a self-contained markdown document for AI-assisted review. Given a list of spec names, it scans all PHP files to find tests with matching `#[Ticket]` attributes, then outputs the spec contents and test source code.
+
+```bash
+# Standalone -- review specific specs
+./vendor/bin/spec-reviewer --specs-dir specs auth/login auth/session
+
+# Pipeline -- review specs that passed classification
+./vendor/bin/test-mapper --specs-dir specs --format specs | ./vendor/bin/spec-reviewer --specs-dir specs
+
+# Omit spec contents (when specs aren't markdown)
+./vendor/bin/spec-reviewer --specs-dir specs --no-specs auth/login
+```
+
+The output includes a table of contents with links, the full contents of each spec file, and the source code of every matching test (including data providers).
+
+### Options
+
+| Option | Short | Default | Description |
+|---|---|---|---|
+| `--specs-dir` | `-d` | _(required)_ | Specs directory |
+| `--no-specs` | | _(off)_ | Omit the Specs section from output |
+
+Spec names are passed as positional arguments. If none are given, they are read from stdin (one per line), enabling piping from `--format specs`.
 
 ## Documentation
 

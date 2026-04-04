@@ -54,7 +54,7 @@ final class FindChangedTestsCommand extends Command
             'format',
             'f',
             InputOption::VALUE_REQUIRED,
-            'Output format (table, json)',
+            'Output format (table, json, specs)',
             'table',
         );
 

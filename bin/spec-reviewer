@@ -1,0 +1,31 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use DaveLiddament\TestMapper\Command\SpecReviewerCommand;
+use DaveLiddament\TestMapper\Output\FileSourceCodeReader;
+use DaveLiddament\TestMapper\TestAnalyzer\PhpUnit\PhpUnitTestMethodFinder;
+use Symfony\Component\Console\Application;
+
+$autoloadPaths = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+];
+
+foreach ($autoloadPaths as $autoloadPath) {
+    if (file_exists($autoloadPath)) {
+        require $autoloadPath;
+
+        break;
+    }
+}
+
+$testMethodFinder = new PhpUnitTestMethodFinder();
+$sourceCodeReader = new FileSourceCodeReader();
+
+$application = new Application('spec-reviewer', '1.0.0');
+$command = new SpecReviewerCommand($testMethodFinder, $sourceCodeReader);
+$application->add($command);
+$application->setDefaultCommand((string) $command->getName(), true);
+$application->run();
