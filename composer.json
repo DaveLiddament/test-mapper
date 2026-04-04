@@ -65,7 +65,7 @@
         "composer-require-checker": "composer-require-checker check",
         "cs": "php-cs-fixer fix -v --dry-run",
         "cs-fix": "php-cs-fixer fix -v",
-        "phpstan": "phpstan analyse --no-progress",
+        "phpstan": "phpstan analyse --no-progress --memory-limit=-1",
         "test": "phpunit",
         "coverage": [
             "XDEBUG_MODE=coverage phpunit --coverage-clover build/coverage/clover.xml",
