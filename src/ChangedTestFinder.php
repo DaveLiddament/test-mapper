@@ -11,5 +11,5 @@ interface ChangedTestFinder
     /**
      * @return list<ChangedTestMethod>
      */
-    public function findChangedTests(string $compareTo): array;
+    public function findChangedTests(string $compareTo, bool $includeUntracked): array;
 }

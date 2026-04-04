@@ -19,9 +19,9 @@ final readonly class ChangedTestMethodFinder implements ChangedTestFinder
     /**
      * @return list<ChangedTestMethod>
      */
-    public function findChangedTests(string $compareTo): array
+    public function findChangedTests(string $compareTo, bool $includeUntracked): array
     {
-        $changedFiles = $this->diffProvider->getChangedFiles($compareTo);
+        $changedFiles = $this->diffProvider->getChangedFiles($compareTo, $includeUntracked);
         $changedTestMethods = [];
 
         foreach ($changedFiles as $changedFile) {

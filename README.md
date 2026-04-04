@@ -4,11 +4,15 @@ A CLI tool that verifies your test changes match your spec changes. It diffs you
 
 ## How it works
 
-1. Runs `git diff` against the base branch.
-2. Finds changed **spec files** in the given specs directory (file extensions are stripped, so `specs/auth/login.md` becomes `auth/login`).
-3. Finds changed **test methods** by parsing PHP files and matching changed line ranges to test methods.
-4. Reads `#[Ticket]` attributes from each changed test to get its spec references.
-5. Classifies every changed test and spec into one of four categories.
+1. **Diff** -- Runs `git diff <branch> --unified=0` to get the changed line ranges across all files in the repository compared to the base branch (default `main`). By default this picks up committed changes, staged changes, and unstaged modifications to tracked files. Untracked files (never `git add`ed) are not included unless you pass `--include-untracked`.
+
+2. **Find changed tests** -- For every changed `.php` file, parses it with [nikic/php-parser](https://github.com/nikic/php-parser) to locate all test methods (those with the `#[Test]` attribute). A test method counts as "changed" if any of its changed lines overlap with the method body, its doc comment, its attributes, or any `#[DataProvider]` method it references.
+
+3. **Extract ticket IDs** -- Each changed test's `#[Ticket]` attributes are read. These values are the link between a test and its spec (e.g. `#[Ticket('auth/login')]`). A test can have multiple `#[Ticket]` attributes or none.
+
+4. **Find changed specs** -- Runs `git diff --name-status <branch> -- <specs-dir>` to list spec files that have been added, modified, deleted, renamed, or copied. The specs directory prefix and file extension are stripped so that `specs/auth/login.md` becomes `auth/login`, matching the ticket ID format.
+
+5. **Classify** -- Cross-references the ticket IDs from changed tests against the changed spec file paths, and assigns each test and spec to one of four categories (see below).
 
 ## Classifications
 
@@ -82,6 +86,9 @@ composer require dave-liddament/test-mapper
 # Validate tests against specs
 ./vendor/bin/test-mapper --specs-dir specs
 
+# Include untracked files (new files not yet git added)
+./vendor/bin/test-mapper --specs-dir specs --include-untracked
+
 # Compare against a different branch
 ./vendor/bin/test-mapper --branch develop --specs-dir specs
 
@@ -96,6 +103,7 @@ composer require dave-liddament/test-mapper
 | `--branch` | `-b` | `main` | Base branch to diff against |
 | `--specs-dir` | `-d` | _(none)_ | Specs directory (enables classification) |
 | `--format` | `-f` | `table` | Output format: `table` or `json` |
+| `--include-untracked` | `-u` | _(off)_ | Also scan untracked files (not yet `git add`ed) |
 
 ## Documentation
 

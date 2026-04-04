@@ -35,7 +35,7 @@ final class ChangedTestMethodFinderTest extends TestCase
         ]);
 
         $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
-        $result = $finder->findChangedTests('main');
+        $result = $finder->findChangedTests('main', false);
 
         self::assertCount(1, $result);
         self::assertSame('App\\Tests\\FooTest::it_works', $result[0]->getFullyQualifiedName());
@@ -55,7 +55,7 @@ final class ChangedTestMethodFinderTest extends TestCase
         $testMethodFinder->expects(self::never())->method('findTestMethods');
 
         $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
-        $result = $finder->findChangedTests('main');
+        $result = $finder->findChangedTests('main', false);
 
         self::assertSame([], $result);
     }
@@ -79,7 +79,7 @@ final class ChangedTestMethodFinderTest extends TestCase
         ]);
 
         $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
-        $result = $finder->findChangedTests('main');
+        $result = $finder->findChangedTests('main', false);
 
         self::assertCount(1, $result);
         self::assertSame('App\\Tests\\FooTest::it_works', $result[0]->getFullyQualifiedName());
@@ -102,7 +102,7 @@ final class ChangedTestMethodFinderTest extends TestCase
         ]);
 
         $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
-        $result = $finder->findChangedTests('main');
+        $result = $finder->findChangedTests('main', false);
 
         self::assertCount(2, $result);
         self::assertSame('App\\Tests\\FooTest::it_works', $result[0]->getFullyQualifiedName());
@@ -125,7 +125,7 @@ final class ChangedTestMethodFinderTest extends TestCase
         ]);
 
         $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
-        $result = $finder->findChangedTests('main');
+        $result = $finder->findChangedTests('main', false);
 
         self::assertSame([], $result);
     }
@@ -139,7 +139,7 @@ final class ChangedTestMethodFinderTest extends TestCase
         $testMethodFinder = static::createStub(TestMethodFinder::class);
 
         $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
-        $result = $finder->findChangedTests('main');
+        $result = $finder->findChangedTests('main', false);
 
         self::assertSame([], $result);
     }
@@ -162,7 +162,7 @@ final class ChangedTestMethodFinderTest extends TestCase
         ]);
 
         $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
-        $result = $finder->findChangedTests('main');
+        $result = $finder->findChangedTests('main', false);
 
         self::assertCount(1, $result);
         self::assertSame('App\\Tests\\FooTest::it_works', $result[0]->getFullyQualifiedName());
@@ -187,7 +187,7 @@ final class ChangedTestMethodFinderTest extends TestCase
         ]);
 
         $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
-        $result = $finder->findChangedTests('main');
+        $result = $finder->findChangedTests('main', false);
 
         self::assertCount(2, $result);
         self::assertSame('App\\Tests\\FooTest::test_one', $result[0]->getFullyQualifiedName());
@@ -212,7 +212,7 @@ final class ChangedTestMethodFinderTest extends TestCase
         ]);
 
         $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
-        $result = $finder->findChangedTests('main');
+        $result = $finder->findChangedTests('main', false);
 
         self::assertCount(1, $result);
         self::assertSame('App\\Tests\\FooTest::it_works', $result[0]->getFullyQualifiedName());
@@ -234,7 +234,7 @@ final class ChangedTestMethodFinderTest extends TestCase
         ]);
 
         $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
-        $result = $finder->findChangedTests('main');
+        $result = $finder->findChangedTests('main', false);
 
         self::assertCount(1, $result);
         self::assertSame(['JIRA-123', 'JIRA-456'], $result[0]->ticketIds);
@@ -258,7 +258,7 @@ final class ChangedTestMethodFinderTest extends TestCase
         ]);
 
         $finder = new ChangedTestMethodFinder($diffProvider, $testMethodFinder);
-        $result = $finder->findChangedTests('main');
+        $result = $finder->findChangedTests('main', false);
 
         self::assertSame([], $result);
     }

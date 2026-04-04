@@ -304,4 +304,48 @@ final class FindChangedTestsCommandTest extends TestCase
 
         self::assertSame(0, $tester->getStatusCode());
     }
+
+    #[Test]
+    public function itPassesIncludeUntrackedToFinders(): void
+    {
+        $changedTestFinder = static::createMock(ChangedTestFinder::class);
+        $changedTestFinder->expects(self::once())
+            ->method('findChangedTests')
+            ->with('main', true)
+            ->willReturn([]);
+
+        $changedSpecsFinder = static::createMock(ChangedSpecsFinder::class);
+        $changedSpecsFinder->expects(self::once())
+            ->method('findChangedSpecs')
+            ->with('main', 'specs', true)
+            ->willReturn([]);
+
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $tester = new CommandTester($command);
+        $tester->execute(['--specs-dir' => 'specs', '--include-untracked' => true]);
+
+        self::assertSame(0, $tester->getStatusCode());
+    }
+
+    #[Test]
+    public function itPassesFalseForIncludeUntrackedByDefault(): void
+    {
+        $changedTestFinder = static::createMock(ChangedTestFinder::class);
+        $changedTestFinder->expects(self::once())
+            ->method('findChangedTests')
+            ->with('main', false)
+            ->willReturn([]);
+
+        $changedSpecsFinder = static::createMock(ChangedSpecsFinder::class);
+        $changedSpecsFinder->expects(self::once())
+            ->method('findChangedSpecs')
+            ->with('main', 'specs', false)
+            ->willReturn([]);
+
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $tester = new CommandTester($command);
+        $tester->execute(['--specs-dir' => 'specs']);
+
+        self::assertSame(0, $tester->getStatusCode());
+    }
 }

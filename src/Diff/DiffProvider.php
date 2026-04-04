@@ -11,5 +11,5 @@ interface DiffProvider
     /**
      * @return list<ChangedFile>
      */
-    public function getChangedFiles(string $compareTo): array;
+    public function getChangedFiles(string $compareTo, bool $includeUntracked): array;
 }

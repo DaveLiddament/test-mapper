@@ -7,6 +7,7 @@ namespace DaveLiddament\TestMapper\Tests\Diff\Git;
 use DaveLiddament\TestMapper\Diff\Git\GitDiffParser;
 use DaveLiddament\TestMapper\Diff\Git\GitDiffProvider;
 use DaveLiddament\TestMapper\Exception\DiffException;
+use DaveLiddament\TestMapper\Model\ChangedFile;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -23,8 +24,29 @@ final class GitDiffProviderTest extends TestCase
         );
 
         // Compare current state against HEAD — should not throw
-        $result = $provider->getChangedFiles('HEAD');
+        $result = $provider->getChangedFiles('HEAD', false);
         self::assertGreaterThanOrEqual(0, count($result));
+    }
+
+    #[Test]
+    public function itIncludesUntrackedFiles(): void
+    {
+        $repoRoot = dirname(__DIR__, 3);
+        $untrackedFile = $repoRoot.'/untracked-test-fixture.php';
+        file_put_contents($untrackedFile, "<?php\n// test\n");
+
+        try {
+            $provider = new GitDiffProvider($repoRoot, new GitDiffParser());
+            $result = $provider->getChangedFiles('HEAD', true);
+
+            $untrackedPaths = array_map(
+                static fn (ChangedFile $f): string => $f->filePath,
+                $result,
+            );
+            self::assertContains('untracked-test-fixture.php', $untrackedPaths);
+        } finally {
+            unlink($untrackedFile);
+        }
     }
 
     #[Test]
@@ -36,6 +58,6 @@ final class GitDiffProviderTest extends TestCase
         );
 
         $this->expectException(DiffException::class);
-        $provider->getChangedFiles('non-existent-branch-xyz-123');
+        $provider->getChangedFiles('non-existent-branch-xyz-123', false);
     }
 }

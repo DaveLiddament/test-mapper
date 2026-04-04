@@ -11,5 +11,5 @@ interface ChangedSpecsFinder
     /**
      * @return list<ChangedSpecFile>
      */
-    public function findChangedSpecs(string $compareTo, string $specsDirectory): array;
+    public function findChangedSpecs(string $compareTo, string $specsDirectory, bool $includeUntracked): array;
 }

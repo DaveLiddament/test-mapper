@@ -57,6 +57,13 @@ final class FindChangedTestsCommand extends Command
             'Output format (table, json)',
             'table',
         );
+
+        $this->addOption(
+            'include-untracked',
+            'u',
+            InputOption::VALUE_NONE,
+            'Include untracked files (files not yet staged)',
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -67,7 +74,9 @@ final class FindChangedTestsCommand extends Command
         /** @var string $format */
         $format = $input->getOption('format');
 
-        $changedTests = $this->changedTestFinder->findChangedTests($branch);
+        $includeUntracked = (bool) $input->getOption('include-untracked');
+
+        $changedTests = $this->changedTestFinder->findChangedTests($branch, $includeUntracked);
 
         /** @var string|null $specsDir */
         $specsDir = $input->getOption('specs-dir');
@@ -75,7 +84,7 @@ final class FindChangedTestsCommand extends Command
         $classificationResult = null;
 
         if (null !== $specsDir && null !== $this->changedSpecsFinder) {
-            $changedSpecs = $this->changedSpecsFinder->findChangedSpecs($branch, $specsDir);
+            $changedSpecs = $this->changedSpecsFinder->findChangedSpecs($branch, $specsDir, $includeUntracked);
             $classificationResult = $this->testClassifier->classify($changedTests, $changedSpecs);
         }
 
