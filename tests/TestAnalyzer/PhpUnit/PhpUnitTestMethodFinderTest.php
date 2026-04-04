@@ -180,6 +180,43 @@ final class PhpUnitTestMethodFinderTest extends TestCase
         self::assertSame([], $result[2]->ticketIds);
     }
 
+    #[Test]
+    public function itInheritsClassLevelTicket(): void
+    {
+        $result = $this->finder->findTestMethods($this->fixturePath('ClassLevelTicketTestClass.php'));
+
+        self::assertSame('itInheritsClassTicket', $result[0]->methodName);
+        self::assertSame(['auth/login'], $result[0]->ticketIds);
+    }
+
+    #[Test]
+    public function itMergesClassAndMethodLevelTickets(): void
+    {
+        $result = $this->finder->findTestMethods($this->fixturePath('ClassLevelTicketTestClass.php'));
+
+        self::assertSame('itMergesClassAndMethodTickets', $result[1]->methodName);
+        self::assertSame(['auth/login', 'auth/session'], $result[1]->ticketIds);
+    }
+
+    #[Test]
+    public function itInheritsMultipleClassLevelTickets(): void
+    {
+        $result = $this->finder->findTestMethods($this->fixturePath('MultipleClassLevelTicketsTestClass.php'));
+
+        self::assertCount(1, $result);
+        self::assertSame(['auth/login', 'auth/session'], $result[0]->ticketIds);
+    }
+
+    #[Test]
+    public function itInheritsClassLevelTicketWithDataProvider(): void
+    {
+        $result = $this->finder->findTestMethods($this->fixturePath('ClassLevelTicketTestClass.php'));
+
+        self::assertSame('itWorksWithDataProvider', $result[2]->methodName);
+        self::assertSame(['auth/login'], $result[2]->ticketIds);
+        self::assertCount(1, $result[2]->dependentRanges);
+    }
+
     private function fixturePath(string $filename): string
     {
         return __DIR__.'/../../Fixtures/TestAnalyzer/'.$filename;

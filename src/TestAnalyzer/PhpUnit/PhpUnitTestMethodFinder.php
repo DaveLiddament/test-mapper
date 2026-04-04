@@ -79,6 +79,8 @@ final class PhpUnitTestMethodFinder implements TestMethodFinder
         /** @var string $fqcn */
         $fqcn = $class->namespacedName?->toString() ?? '';
 
+        $classTicketIds = $this->getClassTicketIds($class);
+
         /** @var array<string, ClassMethod> $methodsByName */
         $methodsByName = [];
         foreach ($class->getMethods() as $method) {
@@ -91,7 +93,7 @@ final class PhpUnitTestMethodFinder implements TestMethodFinder
                 $endLine = $method->getEndLine();
                 $providerNames = $this->getDataProviderNames($method);
                 $dependentRanges = $this->getDependentRanges($providerNames, $methodsByName);
-                $ticketIds = $this->getTicketIds($method);
+                $ticketIds = [...$classTicketIds, ...$this->getTicketIds($method)];
 
                 $testMethods[] = new TestMethod(
                     $fqcn,
@@ -138,6 +140,27 @@ final class PhpUnitTestMethodFinder implements TestMethodFinder
         }
 
         return $names;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function getClassTicketIds(Class_ $class): array
+    {
+        $ticketIds = [];
+
+        foreach ($class->attrGroups as $attrGroup) {
+            foreach ($attrGroup->attrs as $attr) {
+                if (self::TICKET_ATTRIBUTE === $attr->name->toString()) {
+                    $arg = $attr->args[0]->value ?? null;
+                    if ($arg instanceof String_) {
+                        $ticketIds[] = $arg->value;
+                    }
+                }
+            }
+        }
+
+        return $ticketIds;
     }
 
     /**
