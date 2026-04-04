@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace DaveLiddament\TestMapper\Output;
 
-use DaveLiddament\TestMapper\Model\ChangedSpecFile;
 use DaveLiddament\TestMapper\Model\ChangedTestMethod;
+use DaveLiddament\TestMapper\Model\TestClassificationResult;
 use Symfony\Component\Console\Output\OutputInterface;
 
 interface OutputFormatter
 {
     /**
      * @param list<ChangedTestMethod> $changedTests
-     * @param list<ChangedSpecFile> $changedSpecs
      */
-    public function format(array $changedTests, array $changedSpecs, OutputInterface $output): void;
+    public function format(
+        array $changedTests,
+        ?TestClassificationResult $classificationResult,
+        OutputInterface $output,
+    ): void;
 }

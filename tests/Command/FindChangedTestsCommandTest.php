@@ -12,6 +12,7 @@ use DaveLiddament\TestMapper\Model\FileChangeType;
 use DaveLiddament\TestMapper\Output\JsonOutputFormatter;
 use DaveLiddament\TestMapper\Output\TableOutputFormatter;
 use DaveLiddament\TestMapper\Specs\ChangedSpecsFinder;
+use DaveLiddament\TestMapper\TestClassifier;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -23,16 +24,19 @@ final class FindChangedTestsCommandTest extends TestCase
     /** @var array<string, \DaveLiddament\TestMapper\Output\OutputFormatter> */
     private array $formatters;
 
+    private TestClassifier $testClassifier;
+
     protected function setUp(): void
     {
         $this->formatters = [
             'table' => new TableOutputFormatter(),
             'json' => new JsonOutputFormatter(),
         ];
+        $this->testClassifier = new TestClassifier();
     }
 
     #[Test]
-    public function itOutputsChangedTestMethods(): void
+    public function itOutputsChangedTestMethodsWithoutSpecsDir(): void
     {
         $changedTestFinder = static::createMock(ChangedTestFinder::class);
         $changedTestFinder->expects(self::once())
@@ -43,7 +47,7 @@ final class FindChangedTestsCommandTest extends TestCase
                 new ChangedTestMethod('App\\Tests\\BarTest', 'it_also_works'),
             ]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, null, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, null, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute([]);
 
@@ -62,7 +66,7 @@ final class FindChangedTestsCommandTest extends TestCase
             ->with('develop')
             ->willReturn([]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, null, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, null, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute(['--branch' => 'develop']);
 
@@ -75,7 +79,7 @@ final class FindChangedTestsCommandTest extends TestCase
         $changedTestFinder = static::createStub(ChangedTestFinder::class);
         $changedTestFinder->method('findChangedTests')->willReturn([]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, null, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, null, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute([]);
 
@@ -84,31 +88,7 @@ final class FindChangedTestsCommandTest extends TestCase
     }
 
     #[Test]
-    public function itOutputsSpecChangesOnly(): void
-    {
-        $changedTestFinder = static::createStub(ChangedTestFinder::class);
-        $changedTestFinder->method('findChangedTests')->willReturn([]);
-
-        $changedSpecsFinder = static::createMock(ChangedSpecsFinder::class);
-        $changedSpecsFinder->expects(self::once())
-            ->method('findChangedSpecs')
-            ->with('main', 'specs')
-            ->willReturn([
-                new ChangedSpecFile(FileChangeType::Added, 'auth/login'),
-            ]);
-
-        $command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $this->formatters);
-        $tester = new CommandTester($command);
-        $tester->execute(['--specs-dir' => 'specs']);
-
-        self::assertSame(0, $tester->getStatusCode());
-        $output = $tester->getDisplay();
-        self::assertStringContainsString('added', $output);
-        self::assertStringContainsString('auth/login', $output);
-    }
-
-    #[Test]
-    public function itDoesNotOutputSpecsWhenOptionNotProvided(): void
+    public function itDoesNotCallSpecsFinderWhenOptionNotProvided(): void
     {
         $changedTestFinder = static::createStub(ChangedTestFinder::class);
         $changedTestFinder->method('findChangedTests')->willReturn([]);
@@ -117,7 +97,7 @@ final class FindChangedTestsCommandTest extends TestCase
         $changedSpecsFinder->expects(self::never())
             ->method('findChangedSpecs');
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute([]);
 
@@ -126,11 +106,11 @@ final class FindChangedTestsCommandTest extends TestCase
     }
 
     #[Test]
-    public function itOutputsTestsThenSpecs(): void
+    public function itReturnsExitCodeZeroWhenAllOk(): void
     {
         $changedTestFinder = static::createStub(ChangedTestFinder::class);
         $changedTestFinder->method('findChangedTests')->willReturn([
-            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works'),
+            new ChangedTestMethod('App\\Tests\\FooTest', 'bar', ['auth/login']),
         ]);
 
         $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
@@ -138,75 +118,154 @@ final class FindChangedTestsCommandTest extends TestCase
             new ChangedSpecFile(FileChangeType::Modified, 'auth/login'),
         ]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $this->formatters);
-        $tester = new CommandTester($command);
-        $tester->execute(['--specs-dir' => 'specs']);
-
-        $output = $tester->getDisplay();
-        $testPos = strpos($output, 'App\\Tests\\FooTest::it_works');
-        $specPos = strpos($output, 'auth/login');
-        self::assertNotFalse($testPos);
-        self::assertNotFalse($specPos);
-        self::assertGreaterThan($testPos, $specPos);
-    }
-
-    #[Test]
-    public function itOutputsMultipleSpecChanges(): void
-    {
-        $changedTestFinder = static::createStub(ChangedTestFinder::class);
-        $changedTestFinder->method('findChangedTests')->willReturn([]);
-
-        $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
-        $changedSpecsFinder->method('findChangedSpecs')->willReturn([
-            new ChangedSpecFile(FileChangeType::Added, 'new-feature'),
-            new ChangedSpecFile(FileChangeType::Modified, 'existing'),
-            new ChangedSpecFile(FileChangeType::Deleted, 'removed'),
-        ]);
-
-        $command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $this->formatters);
-        $tester = new CommandTester($command);
-        $tester->execute(['--specs-dir' => 'specs']);
-
-        $output = $tester->getDisplay();
-        self::assertStringContainsString('new-feature', $output);
-        self::assertStringContainsString('existing', $output);
-        self::assertStringContainsString('removed', $output);
-    }
-
-    #[Test]
-    public function itOutputsNestedDirectoryChanges(): void
-    {
-        $changedTestFinder = static::createStub(ChangedTestFinder::class);
-        $changedTestFinder->method('findChangedTests')->willReturn([]);
-
-        $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
-        $changedSpecsFinder->method('findChangedSpecs')->willReturn([
-            new ChangedSpecFile(FileChangeType::Modified, 'auth/login/flow'),
-        ]);
-
-        $command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $this->formatters);
-        $tester = new CommandTester($command);
-        $tester->execute(['--specs-dir' => 'specs']);
-
-        $output = $tester->getDisplay();
-        self::assertStringContainsString('auth/login/flow', $output);
-    }
-
-    #[Test]
-    public function itOutputsNothingForSpecsWhenNoSpecChanges(): void
-    {
-        $changedTestFinder = static::createStub(ChangedTestFinder::class);
-        $changedTestFinder->method('findChangedTests')->willReturn([]);
-
-        $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
-        $changedSpecsFinder->method('findChangedSpecs')->willReturn([]);
-
-        $command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute(['--specs-dir' => 'specs']);
 
         self::assertSame(0, $tester->getStatusCode());
-        self::assertSame('', $tester->getDisplay());
+        $output = $tester->getDisplay();
+        self::assertStringContainsString('OK', $output);
+    }
+
+    #[Test]
+    public function itReturnsExitCodeOneWhenNoTickets(): void
+    {
+        $changedTestFinder = static::createStub(ChangedTestFinder::class);
+        $changedTestFinder->method('findChangedTests')->willReturn([
+            new ChangedTestMethod('App\\Tests\\FooTest', 'bar'),
+        ]);
+
+        $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
+        $changedSpecsFinder->method('findChangedSpecs')->willReturn([]);
+
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $tester = new CommandTester($command);
+        $tester->execute(['--specs-dir' => 'specs']);
+
+        self::assertSame(1, $tester->getStatusCode());
+        $output = $tester->getDisplay();
+        self::assertStringContainsString('No Tickets', $output);
+    }
+
+    #[Test]
+    public function itReturnsExitCodeTwoWhenUnexpectedChange(): void
+    {
+        $changedTestFinder = static::createStub(ChangedTestFinder::class);
+        $changedTestFinder->method('findChangedTests')->willReturn([
+            new ChangedTestMethod('App\\Tests\\FooTest', 'bar', ['JIRA-1']),
+        ]);
+
+        $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
+        $changedSpecsFinder->method('findChangedSpecs')->willReturn([]);
+
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $tester = new CommandTester($command);
+        $tester->execute(['--specs-dir' => 'specs']);
+
+        self::assertSame(2, $tester->getStatusCode());
+        $output = $tester->getDisplay();
+        self::assertStringContainsString('Unexpected Change', $output);
+    }
+
+    #[Test]
+    public function itReturnsExitCodeFourWhenNoTest(): void
+    {
+        $changedTestFinder = static::createStub(ChangedTestFinder::class);
+        $changedTestFinder->method('findChangedTests')->willReturn([]);
+
+        $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
+        $changedSpecsFinder->method('findChangedSpecs')->willReturn([
+            new ChangedSpecFile(FileChangeType::Added, 'auth/login'),
+        ]);
+
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $tester = new CommandTester($command);
+        $tester->execute(['--specs-dir' => 'specs']);
+
+        self::assertSame(4, $tester->getStatusCode());
+        $output = $tester->getDisplay();
+        self::assertStringContainsString('No Test', $output);
+    }
+
+    #[Test]
+    public function itReturnsExitCodeSevenWhenAllProblems(): void
+    {
+        $changedTestFinder = static::createStub(ChangedTestFinder::class);
+        $changedTestFinder->method('findChangedTests')->willReturn([
+            new ChangedTestMethod('App\\Tests\\NoTicketTest', 'foo'),
+            new ChangedTestMethod('App\\Tests\\UnexpectedTest', 'bar', ['JIRA-99']),
+        ]);
+
+        $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
+        $changedSpecsFinder->method('findChangedSpecs')->willReturn([
+            new ChangedSpecFile(FileChangeType::Added, 'unmatched/spec'),
+        ]);
+
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $tester = new CommandTester($command);
+        $tester->execute(['--specs-dir' => 'specs']);
+
+        self::assertSame(7, $tester->getStatusCode());
+    }
+
+    #[Test]
+    public function itOutputsJsonFormatWithClassification(): void
+    {
+        $changedTestFinder = static::createStub(ChangedTestFinder::class);
+        $changedTestFinder->method('findChangedTests')->willReturn([
+            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', ['auth/login']),
+        ]);
+
+        $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
+        $changedSpecsFinder->method('findChangedSpecs')->willReturn([
+            new ChangedSpecFile(FileChangeType::Added, 'auth/login'),
+        ]);
+
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $tester = new CommandTester($command);
+        $tester->execute(['--format' => 'json', '--specs-dir' => 'specs']);
+
+        $data = json_decode($tester->getDisplay(), true, 512, \JSON_THROW_ON_ERROR);
+
+        self::assertSame([], $data['noTest']);
+        self::assertSame([], $data['unexpectedChange']);
+        self::assertSame([], $data['noTickets']);
+        self::assertCount(1, $data['ok']);
+        self::assertSame('App\\Tests\\FooTest::it_works', $data['ok'][0]['test']);
+    }
+
+    #[Test]
+    public function itOutputsJsonFormatWithoutSpecsDir(): void
+    {
+        $changedTestFinder = static::createStub(ChangedTestFinder::class);
+        $changedTestFinder->method('findChangedTests')->willReturn([
+            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', ['JIRA-123']),
+        ]);
+
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, null, $this->formatters);
+        $tester = new CommandTester($command);
+        $tester->execute(['--format' => 'json']);
+
+        $data = json_decode($tester->getDisplay(), true, 512, \JSON_THROW_ON_ERROR);
+
+        self::assertSame('App\\Tests\\FooTest::it_works', $data['tests'][0]['name']);
+        self::assertSame(['JIRA-123'], $data['tests'][0]['ticketIds']);
+    }
+
+    #[Test]
+    public function itFallsBackToTableFormatterForUnknownFormat(): void
+    {
+        $changedTestFinder = static::createStub(ChangedTestFinder::class);
+        $changedTestFinder->method('findChangedTests')->willReturn([
+            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works'),
+        ]);
+
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, null, []);
+        $tester = new CommandTester($command);
+        $tester->execute(['--format' => 'unknown']);
+
+        $output = $tester->getDisplay();
+        self::assertStringContainsString('App\\Tests\\FooTest::it_works', $output);
     }
 
     #[Test]
@@ -224,7 +283,7 @@ final class FindChangedTestsCommandTest extends TestCase
             ->with('develop', 'specs')
             ->willReturn([]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute(['--branch' => 'develop', '--specs-dir' => 'specs']);
 
@@ -232,63 +291,17 @@ final class FindChangedTestsCommandTest extends TestCase
     }
 
     #[Test]
-    public function itOutputsDeletedSpecFiles(): void
-    {
-        $changedTestFinder = static::createStub(ChangedTestFinder::class);
-        $changedTestFinder->method('findChangedTests')->willReturn([]);
-
-        $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
-        $changedSpecsFinder->method('findChangedSpecs')->willReturn([
-            new ChangedSpecFile(FileChangeType::Deleted, 'old-feature'),
-        ]);
-
-        $command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $this->formatters);
-        $tester = new CommandTester($command);
-        $tester->execute(['--specs-dir' => 'specs']);
-
-        $output = $tester->getDisplay();
-        self::assertStringContainsString('deleted', $output);
-        self::assertStringContainsString('old-feature', $output);
-    }
-
-    #[Test]
-    public function itOutputsJsonFormat(): void
+    public function itReturnsZeroWithoutSpecsDirEvenWithNoTickets(): void
     {
         $changedTestFinder = static::createStub(ChangedTestFinder::class);
         $changedTestFinder->method('findChangedTests')->willReturn([
-            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', ['JIRA-123']),
+            new ChangedTestMethod('App\\Tests\\FooTest', 'bar'),
         ]);
 
-        $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
-        $changedSpecsFinder->method('findChangedSpecs')->willReturn([
-            new ChangedSpecFile(FileChangeType::Added, 'feature'),
-        ]);
-
-        $command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, null, $this->formatters);
         $tester = new CommandTester($command);
-        $tester->execute(['--format' => 'json', '--specs-dir' => 'specs']);
+        $tester->execute([]);
 
-        $data = json_decode($tester->getDisplay(), true, 512, \JSON_THROW_ON_ERROR);
-
-        self::assertSame('App\\Tests\\FooTest::it_works', $data['tests'][0]['name']);
-        self::assertSame(['JIRA-123'], $data['tests'][0]['ticketIds']);
-        self::assertSame('added', $data['specs'][0]['changeType']);
-        self::assertSame('feature', $data['specs'][0]['filePath']);
-    }
-
-    #[Test]
-    public function itFallsBackToTableFormatterForUnknownFormat(): void
-    {
-        $changedTestFinder = static::createStub(ChangedTestFinder::class);
-        $changedTestFinder->method('findChangedTests')->willReturn([
-            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works'),
-        ]);
-
-        $command = new FindChangedTestsCommand($changedTestFinder, null, []);
-        $tester = new CommandTester($command);
-        $tester->execute(['--format' => 'unknown']);
-
-        $output = $tester->getDisplay();
-        self::assertStringContainsString('App\\Tests\\FooTest::it_works', $output);
+        self::assertSame(0, $tester->getStatusCode());
     }
 }

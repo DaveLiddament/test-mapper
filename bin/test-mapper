@@ -12,6 +12,7 @@ use DaveLiddament\TestMapper\Output\TableOutputFormatter;
 use DaveLiddament\TestMapper\Specs\GitChangedSpecsFinder;
 use DaveLiddament\TestMapper\Specs\NameStatusDiffParser;
 use DaveLiddament\TestMapper\TestAnalyzer\PhpUnit\PhpUnitTestMethodFinder;
+use DaveLiddament\TestMapper\TestClassifier;
 use Symfony\Component\Console\Application;
 
 $autoloadPaths = [
@@ -36,13 +37,15 @@ $changedTestFinder = new ChangedTestMethodFinder($diffProvider, $testMethodFinde
 $nameStatusParser = new NameStatusDiffParser();
 $changedSpecsFinder = new GitChangedSpecsFinder($workingDirectory, $nameStatusParser);
 
+$testClassifier = new TestClassifier();
+
 $application = new Application('test-mapper', '1.0.0');
 $formatters = [
     'table' => new TableOutputFormatter(),
     'json' => new JsonOutputFormatter(),
 ];
 
-$command = new FindChangedTestsCommand($changedTestFinder, $changedSpecsFinder, $formatters);
+$command = new FindChangedTestsCommand($changedTestFinder, $testClassifier, $changedSpecsFinder, $formatters);
 $application->add($command);
 $application->setDefaultCommand((string) $command->getName(), true);
 $application->run();

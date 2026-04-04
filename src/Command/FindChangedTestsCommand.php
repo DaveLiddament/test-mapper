@@ -8,6 +8,7 @@ use DaveLiddament\TestMapper\ChangedTestFinder;
 use DaveLiddament\TestMapper\Output\OutputFormatter;
 use DaveLiddament\TestMapper\Output\TableOutputFormatter;
 use DaveLiddament\TestMapper\Specs\ChangedSpecsFinder;
+use DaveLiddament\TestMapper\TestClassifier;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -25,6 +26,7 @@ final class FindChangedTestsCommand extends Command
      */
     public function __construct(
         private readonly ChangedTestFinder $changedTestFinder,
+        private readonly TestClassifier $testClassifier,
         private readonly ?ChangedSpecsFinder $changedSpecsFinder = null,
         private readonly array $formatters = [],
     ) {
@@ -67,16 +69,22 @@ final class FindChangedTestsCommand extends Command
 
         $changedTests = $this->changedTestFinder->findChangedTests($branch);
 
-        $changedSpecs = [];
         /** @var string|null $specsDir */
         $specsDir = $input->getOption('specs-dir');
 
+        $classificationResult = null;
+
         if (null !== $specsDir && null !== $this->changedSpecsFinder) {
             $changedSpecs = $this->changedSpecsFinder->findChangedSpecs($branch, $specsDir);
+            $classificationResult = $this->testClassifier->classify($changedTests, $changedSpecs);
         }
 
         $formatter = $this->formatters[$format] ?? new TableOutputFormatter();
-        $formatter->format($changedTests, $changedSpecs, $output);
+        $formatter->format($changedTests, $classificationResult, $output);
+
+        if (null !== $classificationResult) {
+            return $classificationResult->getExitCode();
+        }
 
         return Command::SUCCESS;
     }
