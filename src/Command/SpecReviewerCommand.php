@@ -97,6 +97,12 @@ final class SpecReviewerCommand extends Command
             return Command::FAILURE;
         }
 
+        if (!is_dir($specsDir)) {
+            $output->writeln(sprintf('Specs directory not found: %s', $specsDir));
+
+            return Command::FAILURE;
+        }
+
         /** @infection-ignore-all Equivalent mutant: getOption for VALUE_NONE already returns bool */
         $noSpecs = (bool) $input->getOption('no-specs') || $config->isNoSpecs();
 

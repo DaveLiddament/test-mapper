@@ -37,6 +37,20 @@ final class SpecReviewerCommandTest extends TestCase
     }
 
     #[Test]
+    public function itReturnsErrorWhenSpecsDirDoesNotExist(): void
+    {
+        $command = $this->createCommand([]);
+        $tester = new CommandTester($command);
+        $tester->execute([
+            'specs' => ['auth/login'],
+            '--specs-dir' => '/non/existent/specs',
+        ]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString('Specs directory not found', $tester->getDisplay());
+    }
+
+    #[Test]
     public function itReturnsErrorWhenNoSpecNamesProvided(): void
     {
         $command = $this->createCommand([]);
@@ -228,7 +242,7 @@ final class SpecReviewerCommandTest extends TestCase
             ['auth/login'],
         );
 
-        $configPath = __DIR__.'/../Fixtures/Config/valid-config.php';
+        $configPath = __DIR__.'/../Fixtures/Config/real-specs-dir-config.php';
         $command = $this->createCommand([$testMethod]);
         $tester = new CommandTester($command);
         $tester->execute([
@@ -253,7 +267,7 @@ final class SpecReviewerCommandTest extends TestCase
             ['auth/login'],
         );
 
-        $configPath = __DIR__.'/../Fixtures/Config/valid-config.php';
+        $configPath = __DIR__.'/../Fixtures/Config/no-specs-config.php';
         $command = $this->createCommand([$testMethod]);
         $tester = new CommandTester($command);
         $tester->execute([

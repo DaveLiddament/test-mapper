@@ -115,6 +115,12 @@ final class FindChangedTestsCommand extends Command
         /** @var string|null $specsDir */
         $specsDir = $input->getOption('specs-dir') ?? $config->getSpecsDir();
 
+        if (null !== $specsDir && !is_dir($specsDir)) {
+            $output->writeln(sprintf('Specs directory not found: %s', $specsDir));
+
+            return Command::FAILURE;
+        }
+
         /** @var list<string> $testDirOption */
         $testDirOption = $input->getOption('test-dir');
         /** @var list<string> $excludeTestDirOption */
