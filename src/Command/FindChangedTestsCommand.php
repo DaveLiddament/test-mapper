@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace DaveLiddament\TestMapper\Command;
 
 use DaveLiddament\TestMapper\ChangedTestFinder;
+use DaveLiddament\TestMapper\Config\ConfigLoader;
 use DaveLiddament\TestMapper\Output\OutputFormatter;
 use DaveLiddament\TestMapper\Output\TableOutputFormatter;
 use DaveLiddament\TestMapper\Specs\ChangedSpecsFinder;
@@ -27,6 +28,7 @@ final class FindChangedTestsCommand extends Command
     public function __construct(
         private readonly ChangedTestFinder $changedTestFinder,
         private readonly TestClassifier $testClassifier,
+        private readonly ConfigLoader $configLoader,
         private readonly ?ChangedSpecsFinder $changedSpecsFinder = null,
         private readonly array $formatters = [],
     ) {
@@ -36,11 +38,17 @@ final class FindChangedTestsCommand extends Command
     protected function configure(): void
     {
         $this->addOption(
+            'config',
+            'c',
+            InputOption::VALUE_REQUIRED,
+            'Path to config file',
+        );
+
+        $this->addOption(
             'branch',
             'b',
             InputOption::VALUE_REQUIRED,
             'The branch to compare against',
-            'main',
         );
 
         $this->addOption(
@@ -68,19 +76,31 @@ final class FindChangedTestsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        /** @var string $branch */
-        $branch = $input->getOption('branch');
+        /** @var string|null $configPath */
+        $configPath = $input->getOption('config');
+
+        try {
+            $config = $this->configLoader->load($configPath);
+        } catch (\RuntimeException $e) {
+            $output->writeln($e->getMessage());
+
+            return Command::FAILURE;
+        }
+
+        /** @var string|null $branchOption */
+        $branchOption = $input->getOption('branch');
+        $branch = $branchOption ?? $config->getBranch();
 
         /** @var string $format */
         $format = $input->getOption('format');
 
         /** @infection-ignore-all Equivalent mutant: getOption for VALUE_NONE already returns bool */
-        $includeUntracked = (bool) $input->getOption('include-untracked');
-
-        $changedTests = $this->changedTestFinder->findChangedTests($branch, $includeUntracked);
+        $includeUntracked = (bool) $input->getOption('include-untracked') || $config->isIncludeUntracked();
 
         /** @var string|null $specsDir */
-        $specsDir = $input->getOption('specs-dir');
+        $specsDir = $input->getOption('specs-dir') ?? $config->getSpecsDir();
+
+        $changedTests = $this->changedTestFinder->findChangedTests($branch, $includeUntracked);
 
         $classificationResult = null;
 

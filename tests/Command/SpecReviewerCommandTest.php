@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace DaveLiddament\TestMapper\Tests\Command;
 
 use DaveLiddament\TestMapper\Command\SpecReviewerCommand;
+use DaveLiddament\TestMapper\Config\ConfigLoader;
 use DaveLiddament\TestMapper\Model\LineRange;
 use DaveLiddament\TestMapper\Model\TestMethod;
 use DaveLiddament\TestMapper\Output\FileSourceCodeReader;
@@ -199,6 +200,71 @@ final class SpecReviewerCommandTest extends TestCase
         self::assertStringContainsString('### Tests', $contentsSection);
     }
 
+    #[Test]
+    public function itReturnsErrorWhenConfigFileNotFound(): void
+    {
+        $command = $this->createCommand([]);
+        $tester = new CommandTester($command);
+        $tester->execute([
+            'specs' => ['auth/login'],
+            '--config' => '/non/existent/config.php',
+            '--specs-dir' => $this->specsDir,
+        ]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString('Config file not found', $tester->getDisplay());
+    }
+
+    #[Test]
+    public function itUsesSpecsDirFromConfig(): void
+    {
+        $testMethod = new TestMethod(
+            'App\\Tests\\LoginTest',
+            'it_validates',
+            10,
+            15,
+            'tests/LoginTest.php',
+            [],
+            ['auth/login'],
+        );
+
+        $configPath = __DIR__.'/../Fixtures/Config/valid-config.php';
+        $command = $this->createCommand([$testMethod]);
+        $tester = new CommandTester($command);
+        $tester->execute([
+            'specs' => ['auth/login'],
+            '--config' => $configPath,
+        ]);
+
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertStringContainsString('# Changes to Review', $tester->getDisplay());
+    }
+
+    #[Test]
+    public function itUsesNoSpecsFromConfig(): void
+    {
+        $testMethod = new TestMethod(
+            'App\\Tests\\LoginTest',
+            'it_validates',
+            10,
+            15,
+            'tests/LoginTest.php',
+            [],
+            ['auth/login'],
+        );
+
+        $configPath = __DIR__.'/../Fixtures/Config/valid-config.php';
+        $command = $this->createCommand([$testMethod]);
+        $tester = new CommandTester($command);
+        $tester->execute([
+            'specs' => ['auth/login'],
+            '--config' => $configPath,
+        ]);
+
+        $display = $tester->getDisplay();
+        self::assertStringNotContainsString('## Specs', $display);
+    }
+
     /**
      * @param list<TestMethod> $testMethods
      */
@@ -211,6 +277,6 @@ final class SpecReviewerCommandTest extends TestCase
             ? new FileSourceCodeReader()
             : new FileSourceCodeReader();
 
-        return new SpecReviewerCommand($testMethodFinder, $sourceCodeReader);
+        return new SpecReviewerCommand($testMethodFinder, $sourceCodeReader, new ConfigLoader());
     }
 }

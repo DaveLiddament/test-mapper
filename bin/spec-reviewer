@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use DaveLiddament\TestMapper\Command\SpecReviewerCommand;
+use DaveLiddament\TestMapper\Config\ConfigLoader;
 use DaveLiddament\TestMapper\Output\FileSourceCodeReader;
 use DaveLiddament\TestMapper\TestAnalyzer\PhpUnit\PhpUnitTestMethodFinder;
 use Symfony\Component\Console\Application;
@@ -25,7 +26,8 @@ $testMethodFinder = new PhpUnitTestMethodFinder();
 $sourceCodeReader = new FileSourceCodeReader();
 
 $application = new Application('spec-reviewer', '1.0.0');
-$command = new SpecReviewerCommand($testMethodFinder, $sourceCodeReader);
+$configLoader = new ConfigLoader();
+$command = new SpecReviewerCommand($testMethodFinder, $sourceCodeReader, $configLoader);
 $application->add($command);
 $application->setDefaultCommand((string) $command->getName(), true);
 $application->run();

@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 use DaveLiddament\TestMapper\ChangedTestMethodFinder;
 use DaveLiddament\TestMapper\Command\FindChangedTestsCommand;
+use DaveLiddament\TestMapper\Config\ConfigLoader;
 use DaveLiddament\TestMapper\Diff\Git\GitDiffParser;
 use DaveLiddament\TestMapper\Diff\Git\GitDiffProvider;
 use DaveLiddament\TestMapper\Output\JsonOutputFormatter;
@@ -47,7 +48,8 @@ $formatters = [
     'specs' => new SpecsOutputFormatter(),
 ];
 
-$command = new FindChangedTestsCommand($changedTestFinder, $testClassifier, $changedSpecsFinder, $formatters);
+$configLoader = new ConfigLoader();
+$command = new FindChangedTestsCommand($changedTestFinder, $testClassifier, $configLoader, $changedSpecsFinder, $formatters);
 $application->add($command);
 $application->setDefaultCommand((string) $command->getName(), true);
 $application->run();

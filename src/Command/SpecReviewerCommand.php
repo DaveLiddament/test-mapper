@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DaveLiddament\TestMapper\Command;
 
+use DaveLiddament\TestMapper\Config\ConfigLoader;
 use DaveLiddament\TestMapper\Model\LineRange;
 use DaveLiddament\TestMapper\Model\TestMethod;
 use DaveLiddament\TestMapper\Output\SourceCodeReader;
@@ -21,9 +22,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 final class SpecReviewerCommand extends Command
 {
+    private const array DEFAULT_TEST_DIRECTORIES = ['tests'];
+
     public function __construct(
         private readonly TestMethodFinder $testMethodFinder,
         private readonly SourceCodeReader $sourceCodeReader,
+        private readonly ConfigLoader $configLoader,
     ) {
         parent::__construct();
     }
@@ -34,6 +38,13 @@ final class SpecReviewerCommand extends Command
             'specs',
             InputArgument::IS_ARRAY,
             'Spec names to review (reads from stdin if omitted)',
+        );
+
+        $this->addOption(
+            'config',
+            'c',
+            InputOption::VALUE_REQUIRED,
+            'Path to config file',
         );
 
         $this->addOption(
@@ -53,8 +64,19 @@ final class SpecReviewerCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        /** @var string|null $configPath */
+        $configPath = $input->getOption('config');
+
+        try {
+            $config = $this->configLoader->load($configPath);
+        } catch (\RuntimeException $e) {
+            $output->writeln($e->getMessage());
+
+            return Command::FAILURE;
+        }
+
         /** @var string|null $specsDir */
-        $specsDir = $input->getOption('specs-dir');
+        $specsDir = $input->getOption('specs-dir') ?? $config->getSpecsDir();
 
         if (null === $specsDir) {
             $output->writeln('The --specs-dir option is required');
@@ -63,7 +85,7 @@ final class SpecReviewerCommand extends Command
         }
 
         /** @infection-ignore-all Equivalent mutant: getOption for VALUE_NONE already returns bool */
-        $noSpecs = (bool) $input->getOption('no-specs');
+        $noSpecs = (bool) $input->getOption('no-specs') || $config->isNoSpecs();
 
         $specNames = $this->collectSpecNames($input);
 
@@ -73,7 +95,12 @@ final class SpecReviewerCommand extends Command
             return Command::FAILURE;
         }
 
-        $testsBySpec = $this->findMatchingTests($specNames);
+        $testDirectories = $config->getTestDirectories();
+        if ([] === $testDirectories) {
+            $testDirectories = self::DEFAULT_TEST_DIRECTORIES;
+        }
+
+        $testsBySpec = $this->findMatchingTests($specNames, $testDirectories, $config->getExcludeTestDirectories());
 
         $this->writeMarkdown($specNames, $testsBySpec, $specsDir, $noSpecs, $output);
 
@@ -92,7 +119,14 @@ final class SpecReviewerCommand extends Command
             $specs = $args;
         } else {
             // @codeCoverageIgnoreStart
-            $stdin = file_get_contents('php://stdin');
+            $stdinStream = \STDIN;
+
+            if (stream_isatty($stdinStream)) {
+                return [];
+            }
+
+            stream_set_blocking($stdinStream, false);
+            $stdin = stream_get_contents($stdinStream);
 
             if (false === $stdin || '' === trim($stdin)) {
                 return [];
@@ -112,15 +146,17 @@ final class SpecReviewerCommand extends Command
 
     /**
      * @param list<string> $specNames
+     * @param list<string> $testDirectories
+     * @param list<string> $excludeDirectories
      *
      * @return array<string, list<TestMethod>>
      */
-    private function findMatchingTests(array $specNames): array
+    private function findMatchingTests(array $specNames, array $testDirectories, array $excludeDirectories): array
     {
         $specSet = array_flip($specNames);
         $testsBySpec = array_fill_keys($specNames, []);
 
-        $phpFiles = $this->findPhpFiles();
+        $phpFiles = $this->findPhpFiles($testDirectories, $excludeDirectories);
 
         foreach ($phpFiles as $file) {
             $testMethods = $this->testMethodFinder->findTestMethods($file);
@@ -138,39 +174,74 @@ final class SpecReviewerCommand extends Command
     }
 
     /**
+     * @param list<string> $testDirectories
+     * @param list<string> $excludeDirectories
+     *
      * @return list<string>
      */
-    private function findPhpFiles(): array
+    private function findPhpFiles(array $testDirectories, array $excludeDirectories): array
     {
-        $directory = (string) getcwd();
+        $basePath = (string) getcwd();
         $files = [];
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
-        );
+        foreach ($testDirectories as $testDir) {
+            $directory = $basePath.'/'.$testDir;
 
-        /** @var \SplFileInfo $file */
-        foreach ($iterator as $file) {
-            if (!$file->isFile()) {
+            if (!is_dir($directory)) {
                 continue; // @codeCoverageIgnore
             }
 
-            $path = $file->getPathname();
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
+            );
 
-            if (!str_ends_with($path, '.php')) {
-                continue;
+            /** @var \SplFileInfo $file */
+            foreach ($iterator as $file) {
+                if (!$file->isFile()) {
+                    continue; // @codeCoverageIgnore
+                }
+
+                $path = $file->getPathname();
+
+                if (!str_ends_with($path, '.php')) {
+                    continue;
+                }
+
+                if ($this->isExcluded($path, $basePath, $excludeDirectories)) {
+                    continue; // @codeCoverageIgnore
+                }
+
+                $files[] = $path;
             }
-
-            if (str_contains($path, '/vendor/')) {
-                continue;
-            }
-
-            $files[] = $path;
         }
 
         sort($files);
 
         return $files;
+    }
+
+    /**
+     * @param list<string> $excludeDirectories
+     */
+    /**
+     * @param list<string> $excludeDirectories
+     *
+     * @codeCoverageIgnore Filesystem filtering logic — tested via integration
+     */
+    private function isExcluded(string $path, string $basePath, array $excludeDirectories): bool
+    {
+        if (str_contains($path, '/vendor/')) {
+            return true;
+        }
+
+        foreach ($excludeDirectories as $excludeDir) {
+            $excludePath = $basePath.'/'.$excludeDir;
+            if (str_starts_with($path, $excludePath)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

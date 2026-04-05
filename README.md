@@ -104,6 +104,7 @@ composer require dave-liddament/test-mapper
 | `--specs-dir` | `-d` | _(none)_ | Specs directory (enables classification) |
 | `--format` | `-f` | `table` | Output format: `table`, `json`, or `specs` |
 | `--include-untracked` | `-u` | _(off)_ | Also scan untracked files (not yet `git add`ed) |
+| `--config` | `-c` | _(auto)_ | Path to config file (default: `.test-mapper.php`) |
 
 ## Spec Reviewer
 
@@ -128,8 +129,40 @@ The output includes a table of contents with links, the full contents of each sp
 |---|---|---|---|
 | `--specs-dir` | `-d` | _(required)_ | Specs directory |
 | `--no-specs` | | _(off)_ | Omit the Specs section from output |
+| `--config` | `-c` | _(auto)_ | Path to config file (default: `.test-mapper.php`) |
 
 Spec names are passed as positional arguments. If none are given, they are read from stdin (one per line), enabling piping from `--format specs`.
+
+## Configuration
+
+Both `test-mapper` and `spec-reviewer` look for a `.test-mapper.php` config file in the project root. Command-line options override config values.
+
+```php
+<?php
+// .test-mapper.php
+
+use DaveLiddament\TestMapper\Config\TestMapperConfig;
+
+return TestMapperConfig::create()
+    ->specsDir('specs')
+    ->branch('develop')
+    ->includeUntracked()
+    ->testDirectories('tests', 'integration-tests')
+    ->excludeTestDirectories('tests/Fixtures')
+    ->noSpecs()
+    ->build();
+```
+
+| Method | Default | Used by | Description |
+|---|---|---|---|
+| `specsDir(string)` | _(none)_ | both | Specs directory |
+| `branch(string)` | `main` | test-mapper | Base branch to diff against |
+| `includeUntracked()` | off | test-mapper | Include untracked files |
+| `testDirectories(string ...)` | `tests` | both | Directories to scan for test files |
+| `excludeTestDirectories(string ...)` | _(none)_ | both | Directories to exclude from scanning |
+| `noSpecs()` | off | spec-reviewer | Omit Specs section from output |
+
+If the default config file is absent, built-in defaults are used. Use `--config path/to/config.php` to specify a custom location (errors if the file doesn't exist).
 
 ## Documentation
 

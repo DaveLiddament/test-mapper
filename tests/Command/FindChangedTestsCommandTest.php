@@ -6,6 +6,7 @@ namespace DaveLiddament\TestMapper\Tests\Command;
 
 use DaveLiddament\TestMapper\ChangedTestFinder;
 use DaveLiddament\TestMapper\Command\FindChangedTestsCommand;
+use DaveLiddament\TestMapper\Config\ConfigLoader;
 use DaveLiddament\TestMapper\Model\ChangedSpecFile;
 use DaveLiddament\TestMapper\Model\ChangedTestMethod;
 use DaveLiddament\TestMapper\Model\FileChangeType;
@@ -26,6 +27,8 @@ final class FindChangedTestsCommandTest extends TestCase
 
     private TestClassifier $testClassifier;
 
+    private ConfigLoader $configLoader;
+
     protected function setUp(): void
     {
         $this->formatters = [
@@ -33,6 +36,7 @@ final class FindChangedTestsCommandTest extends TestCase
             'json' => new JsonOutputFormatter(),
         ];
         $this->testClassifier = new TestClassifier();
+        $this->configLoader = new ConfigLoader();
     }
 
     #[Test]
@@ -47,7 +51,7 @@ final class FindChangedTestsCommandTest extends TestCase
                 new ChangedTestMethod('App\\Tests\\BarTest', 'it_also_works'),
             ]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, null, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, null, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute([]);
 
@@ -66,7 +70,7 @@ final class FindChangedTestsCommandTest extends TestCase
             ->with('develop')
             ->willReturn([]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, null, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, null, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute(['--branch' => 'develop']);
 
@@ -79,7 +83,7 @@ final class FindChangedTestsCommandTest extends TestCase
         $changedTestFinder = static::createStub(ChangedTestFinder::class);
         $changedTestFinder->method('findChangedTests')->willReturn([]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, null, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, null, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute([]);
 
@@ -97,7 +101,7 @@ final class FindChangedTestsCommandTest extends TestCase
         $changedSpecsFinder->expects(self::never())
             ->method('findChangedSpecs');
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, $changedSpecsFinder, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute([]);
 
@@ -118,7 +122,7 @@ final class FindChangedTestsCommandTest extends TestCase
             new ChangedSpecFile(FileChangeType::Modified, 'auth/login'),
         ]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, $changedSpecsFinder, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute(['--specs-dir' => 'specs']);
 
@@ -138,7 +142,7 @@ final class FindChangedTestsCommandTest extends TestCase
         $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
         $changedSpecsFinder->method('findChangedSpecs')->willReturn([]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, $changedSpecsFinder, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute(['--specs-dir' => 'specs']);
 
@@ -158,7 +162,7 @@ final class FindChangedTestsCommandTest extends TestCase
         $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
         $changedSpecsFinder->method('findChangedSpecs')->willReturn([]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, $changedSpecsFinder, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute(['--specs-dir' => 'specs']);
 
@@ -178,7 +182,7 @@ final class FindChangedTestsCommandTest extends TestCase
             new ChangedSpecFile(FileChangeType::Added, 'auth/login'),
         ]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, $changedSpecsFinder, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute(['--specs-dir' => 'specs']);
 
@@ -201,7 +205,7 @@ final class FindChangedTestsCommandTest extends TestCase
             new ChangedSpecFile(FileChangeType::Added, 'unmatched/spec'),
         ]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, $changedSpecsFinder, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute(['--specs-dir' => 'specs']);
 
@@ -221,7 +225,7 @@ final class FindChangedTestsCommandTest extends TestCase
             new ChangedSpecFile(FileChangeType::Added, 'auth/login'),
         ]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, $changedSpecsFinder, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute(['--format' => 'json', '--specs-dir' => 'specs']);
 
@@ -242,7 +246,7 @@ final class FindChangedTestsCommandTest extends TestCase
             new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', ['JIRA-123']),
         ]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, null, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, null, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute(['--format' => 'json']);
 
@@ -260,7 +264,7 @@ final class FindChangedTestsCommandTest extends TestCase
             new ChangedTestMethod('App\\Tests\\FooTest', 'it_works'),
         ]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, null, []);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, formatters: []);
         $tester = new CommandTester($command);
         $tester->execute(['--format' => 'unknown']);
 
@@ -283,7 +287,7 @@ final class FindChangedTestsCommandTest extends TestCase
             ->with('develop', 'specs')
             ->willReturn([]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, $changedSpecsFinder, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute(['--branch' => 'develop', '--specs-dir' => 'specs']);
 
@@ -298,7 +302,7 @@ final class FindChangedTestsCommandTest extends TestCase
             new ChangedTestMethod('App\\Tests\\FooTest', 'bar'),
         ]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, null, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, null, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute([]);
 
@@ -320,7 +324,7 @@ final class FindChangedTestsCommandTest extends TestCase
             ->with('main', 'specs', true)
             ->willReturn([]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, $changedSpecsFinder, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute(['--specs-dir' => 'specs', '--include-untracked' => true]);
 
@@ -342,9 +346,57 @@ final class FindChangedTestsCommandTest extends TestCase
             ->with('main', 'specs', false)
             ->willReturn([]);
 
-        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $changedSpecsFinder, $this->formatters);
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, $changedSpecsFinder, $this->formatters);
         $tester = new CommandTester($command);
         $tester->execute(['--specs-dir' => 'specs']);
+
+        self::assertSame(0, $tester->getStatusCode());
+    }
+
+    #[Test]
+    public function itReturnsErrorWhenConfigFileNotFound(): void
+    {
+        $changedTestFinder = static::createStub(ChangedTestFinder::class);
+        $changedTestFinder->method('findChangedTests')->willReturn([]);
+
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, null, $this->formatters);
+        $tester = new CommandTester($command);
+        $tester->execute(['--config' => '/non/existent/config.php']);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString('Config file not found', $tester->getDisplay());
+    }
+
+    #[Test]
+    public function itUsesConfigBranchWhenCliNotProvided(): void
+    {
+        $changedTestFinder = static::createMock(ChangedTestFinder::class);
+        $changedTestFinder->expects(self::once())
+            ->method('findChangedTests')
+            ->with('develop', true)
+            ->willReturn([]);
+
+        $configPath = __DIR__.'/../Fixtures/Config/valid-config.php';
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, null, $this->formatters);
+        $tester = new CommandTester($command);
+        $tester->execute(['--config' => $configPath]);
+
+        self::assertSame(0, $tester->getStatusCode());
+    }
+
+    #[Test]
+    public function itOverridesConfigBranchWithCliOption(): void
+    {
+        $changedTestFinder = static::createMock(ChangedTestFinder::class);
+        $changedTestFinder->expects(self::once())
+            ->method('findChangedTests')
+            ->with('feature', true)
+            ->willReturn([]);
+
+        $configPath = __DIR__.'/../Fixtures/Config/valid-config.php';
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, null, $this->formatters);
+        $tester = new CommandTester($command);
+        $tester->execute(['--config' => $configPath, '--branch' => 'feature']);
 
         self::assertSame(0, $tester->getStatusCode());
     }
