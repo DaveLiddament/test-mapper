@@ -6,6 +6,7 @@ namespace DaveLiddament\TestMapper\Command;
 
 use DaveLiddament\TestMapper\ChangedTestFinder;
 use DaveLiddament\TestMapper\Config\ConfigLoader;
+use DaveLiddament\TestMapper\Config\TestDirectoryFilter;
 use DaveLiddament\TestMapper\Output\OutputFormatter;
 use DaveLiddament\TestMapper\Output\TableOutputFormatter;
 use DaveLiddament\TestMapper\Specs\ChangedSpecsFinder;
@@ -100,7 +101,8 @@ final class FindChangedTestsCommand extends Command
         /** @var string|null $specsDir */
         $specsDir = $input->getOption('specs-dir') ?? $config->getSpecsDir();
 
-        $changedTests = $this->changedTestFinder->findChangedTests($branch, $includeUntracked);
+        $filter = TestDirectoryFilter::fromConfig($config);
+        $changedTests = $filter->filter($this->changedTestFinder->findChangedTests($branch, $includeUntracked));
 
         $classificationResult = null;
 

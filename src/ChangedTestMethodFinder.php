@@ -37,6 +37,7 @@ final readonly class ChangedTestMethodFinder implements ChangedTestFinder
                         $testMethod->fullyQualifiedClassName,
                         $testMethod->methodName,
                         $testMethod->ticketIds,
+                        $changedFile->filePath,
                     );
                     continue;
                 }
@@ -47,6 +48,7 @@ final readonly class ChangedTestMethodFinder implements ChangedTestFinder
                             $testMethod->fullyQualifiedClassName,
                             $testMethod->methodName,
                             $testMethod->ticketIds,
+                            $changedFile->filePath,
                         );
                         /** @infection-ignore-all Equivalent mutant: `continue` on inner loop produces same result, just doesn't short-circuit */
                         break;

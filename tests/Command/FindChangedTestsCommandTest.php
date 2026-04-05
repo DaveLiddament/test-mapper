@@ -47,8 +47,8 @@ final class FindChangedTestsCommandTest extends TestCase
             ->method('findChangedTests')
             ->with('main')
             ->willReturn([
-                new ChangedTestMethod('App\\Tests\\FooTest', 'it_works'),
-                new ChangedTestMethod('App\\Tests\\BarTest', 'it_also_works'),
+                new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', filePath: 'tests/FooTest.php'),
+                new ChangedTestMethod('App\\Tests\\BarTest', 'it_also_works', filePath: 'tests/BarTest.php'),
             ]);
 
         $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, null, $this->formatters);
@@ -114,7 +114,7 @@ final class FindChangedTestsCommandTest extends TestCase
     {
         $changedTestFinder = static::createStub(ChangedTestFinder::class);
         $changedTestFinder->method('findChangedTests')->willReturn([
-            new ChangedTestMethod('App\\Tests\\FooTest', 'bar', ['auth/login']),
+            new ChangedTestMethod('App\\Tests\\FooTest', 'bar', ['auth/login'], 'tests/FooTest.php'),
         ]);
 
         $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
@@ -136,7 +136,7 @@ final class FindChangedTestsCommandTest extends TestCase
     {
         $changedTestFinder = static::createStub(ChangedTestFinder::class);
         $changedTestFinder->method('findChangedTests')->willReturn([
-            new ChangedTestMethod('App\\Tests\\FooTest', 'bar'),
+            new ChangedTestMethod('App\\Tests\\FooTest', 'bar', filePath: 'tests/FooTest.php'),
         ]);
 
         $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
@@ -156,7 +156,7 @@ final class FindChangedTestsCommandTest extends TestCase
     {
         $changedTestFinder = static::createStub(ChangedTestFinder::class);
         $changedTestFinder->method('findChangedTests')->willReturn([
-            new ChangedTestMethod('App\\Tests\\FooTest', 'bar', ['JIRA-1']),
+            new ChangedTestMethod('App\\Tests\\FooTest', 'bar', ['JIRA-1'], 'tests/FooTest.php'),
         ]);
 
         $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
@@ -196,8 +196,8 @@ final class FindChangedTestsCommandTest extends TestCase
     {
         $changedTestFinder = static::createStub(ChangedTestFinder::class);
         $changedTestFinder->method('findChangedTests')->willReturn([
-            new ChangedTestMethod('App\\Tests\\NoTicketTest', 'foo'),
-            new ChangedTestMethod('App\\Tests\\UnexpectedTest', 'bar', ['JIRA-99']),
+            new ChangedTestMethod('App\\Tests\\NoTicketTest', 'foo', filePath: 'tests/NoTicketTest.php'),
+            new ChangedTestMethod('App\\Tests\\UnexpectedTest', 'bar', ['JIRA-99'], 'tests/UnexpectedTest.php'),
         ]);
 
         $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
@@ -217,7 +217,7 @@ final class FindChangedTestsCommandTest extends TestCase
     {
         $changedTestFinder = static::createStub(ChangedTestFinder::class);
         $changedTestFinder->method('findChangedTests')->willReturn([
-            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', ['auth/login']),
+            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', ['auth/login'], 'tests/FooTest.php'),
         ]);
 
         $changedSpecsFinder = static::createStub(ChangedSpecsFinder::class);
@@ -243,7 +243,7 @@ final class FindChangedTestsCommandTest extends TestCase
     {
         $changedTestFinder = static::createStub(ChangedTestFinder::class);
         $changedTestFinder->method('findChangedTests')->willReturn([
-            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', ['JIRA-123']),
+            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', ['JIRA-123'], 'tests/FooTest.php'),
         ]);
 
         $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, null, $this->formatters);
@@ -261,7 +261,7 @@ final class FindChangedTestsCommandTest extends TestCase
     {
         $changedTestFinder = static::createStub(ChangedTestFinder::class);
         $changedTestFinder->method('findChangedTests')->willReturn([
-            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works'),
+            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', filePath: 'tests/FooTest.php'),
         ]);
 
         $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, formatters: []);
@@ -299,7 +299,7 @@ final class FindChangedTestsCommandTest extends TestCase
     {
         $changedTestFinder = static::createStub(ChangedTestFinder::class);
         $changedTestFinder->method('findChangedTests')->willReturn([
-            new ChangedTestMethod('App\\Tests\\FooTest', 'bar'),
+            new ChangedTestMethod('App\\Tests\\FooTest', 'bar', filePath: 'tests/FooTest.php'),
         ]);
 
         $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, null, $this->formatters);

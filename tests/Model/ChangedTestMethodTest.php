@@ -37,4 +37,12 @@ final class ChangedTestMethodTest extends TestCase
 
         self::assertSame([], $method->ticketIds);
     }
+
+    #[Test]
+    public function itReturnsRelativeFilePath(): void
+    {
+        $method = new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', filePath: 'tests/FooTest.php');
+
+        self::assertSame('tests/FooTest.php', $method->getRelativeFilePath());
+    }
 }

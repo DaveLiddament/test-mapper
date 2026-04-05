@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DaveLiddament\TestMapper\Model;
 
-final readonly class TestMethod
+final readonly class TestMethod implements HasRelativeFilePath
 {
     /**
      * @param list<LineRange> $dependentRanges
@@ -19,5 +19,10 @@ final readonly class TestMethod
         public array $dependentRanges = [],
         public array $ticketIds = [],
     ) {
+    }
+
+    public function getRelativeFilePath(): string
+    {
+        return $this->filePath;
     }
 }
