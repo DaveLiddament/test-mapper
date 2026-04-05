@@ -21,6 +21,7 @@ final class TestDirectoryFilterTest extends TestCase
 
         self::assertTrue($filter->isIncluded($this->item('tests/FooTest.php')));
         self::assertFalse($filter->isIncluded($this->item('src/Foo.php')));
+        self::assertFalse($filter->isIncluded($this->item('testing/Foo.php')));
     }
 
     #[Test]
@@ -31,6 +32,7 @@ final class TestDirectoryFilterTest extends TestCase
         self::assertTrue($filter->isIncluded($this->item('tests/FooTest.php')));
         self::assertTrue($filter->isIncluded($this->item('integration/BarTest.php')));
         self::assertFalse($filter->isIncluded($this->item('src/Foo.php')));
+        self::assertFalse($filter->isIncluded($this->item('integrations/Foo.php')));
     }
 
     #[Test]
@@ -40,6 +42,7 @@ final class TestDirectoryFilterTest extends TestCase
 
         self::assertTrue($filter->isIncluded($this->item('tests/FooTest.php')));
         self::assertFalse($filter->isIncluded($this->item('tests/Fixtures/SomeFixture.php')));
+        self::assertTrue($filter->isIncluded($this->item('tests/FixturesExtra/SomeTest.php')));
     }
 
     #[Test]

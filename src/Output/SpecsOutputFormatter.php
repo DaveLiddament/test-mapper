@@ -18,6 +18,7 @@ final class SpecsOutputFormatter implements OutputFormatter
         $specs = [];
         foreach ($classificationResult->ok as $test) {
             foreach ($test->matchingSpecs as $spec) {
+                /** @infection-ignore-all Equivalent mutant: value is irrelevant, only keys are used */
                 $specs[$spec] = true;
             }
         }

@@ -436,4 +436,67 @@ final class FindChangedTestsCommandTest extends TestCase
         self::assertStringContainsString('FooTest', $output);
         self::assertStringNotContainsString('FixtureTest', $output);
     }
+
+    #[Test]
+    public function itOverridesConfigSpecsDirWithCliOption(): void
+    {
+        $changedTestFinder = static::createStub(ChangedTestFinder::class);
+        $changedTestFinder->method('findChangedTests')->willReturn([
+            new ChangedTestMethod('App\\Tests\\FooTest', 'bar', ['cli-spec'], 'tests/FooTest.php'),
+        ]);
+
+        $changedSpecsFinder = static::createMock(ChangedSpecsFinder::class);
+        $changedSpecsFinder->expects(self::once())
+            ->method('findChangedSpecs')
+            ->with('develop', 'cli-specs', true)
+            ->willReturn([
+                new ChangedSpecFile(FileChangeType::Modified, 'cli-spec'),
+            ]);
+
+        $configPath = __DIR__.'/../Fixtures/Config/valid-config.php';
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, $changedSpecsFinder, $this->formatters);
+        $tester = new CommandTester($command);
+        $tester->execute(['--config' => $configPath, '--specs-dir' => 'cli-specs']);
+
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertStringContainsString('OK', $tester->getDisplay());
+    }
+
+    #[Test]
+    public function itOverridesConfigTestDirWithCliOption(): void
+    {
+        $changedTestFinder = static::createStub(ChangedTestFinder::class);
+        $changedTestFinder->method('findChangedTests')->willReturn([
+            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', filePath: 'custom/FooTest.php'),
+            new ChangedTestMethod('App\\Tests\\BarTest', 'it_works', filePath: 'tests/BarTest.php'),
+        ]);
+
+        $configPath = __DIR__.'/../Fixtures/Config/valid-config.php';
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, null, $this->formatters);
+        $tester = new CommandTester($command);
+        $tester->execute(['--config' => $configPath, '--test-dir' => ['custom']]);
+
+        $output = $tester->getDisplay();
+        self::assertStringContainsString('FooTest', $output);
+        self::assertStringNotContainsString('BarTest', $output);
+    }
+
+    #[Test]
+    public function itOverridesConfigExcludeTestDirWithCliOption(): void
+    {
+        $changedTestFinder = static::createStub(ChangedTestFinder::class);
+        $changedTestFinder->method('findChangedTests')->willReturn([
+            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', filePath: 'tests/FooTest.php'),
+            new ChangedTestMethod('App\\Tests\\ExcludedTest', 'it_works', filePath: 'tests/Excluded/ExcludedTest.php'),
+        ]);
+
+        $configPath = __DIR__.'/../Fixtures/Config/valid-config.php';
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, null, $this->formatters);
+        $tester = new CommandTester($command);
+        $tester->execute(['--config' => $configPath, '--test-dir' => ['tests'], '--exclude-test-dir' => ['tests/Excluded']]);
+
+        $output = $tester->getDisplay();
+        self::assertStringContainsString('FooTest', $output);
+        self::assertStringNotContainsString('ExcludedTest', $output);
+    }
 }

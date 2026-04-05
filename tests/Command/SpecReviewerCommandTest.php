@@ -315,6 +315,32 @@ final class SpecReviewerCommandTest extends TestCase
         self::assertStringContainsString('# Changes to Review', $tester->getDisplay());
     }
 
+    #[Test]
+    public function itOverridesConfigSpecsDirWithCliOption(): void
+    {
+        $testMethod = new TestMethod(
+            'App\\Tests\\LoginTest',
+            'it_validates',
+            10,
+            15,
+            'tests/LoginTest.php',
+            [],
+            ['auth/login'],
+        );
+
+        $configPath = __DIR__.'/../Fixtures/Config/specs-dir-only-config.php';
+        $command = $this->createCommand([$testMethod]);
+        $tester = new CommandTester($command);
+        $tester->execute([
+            'specs' => ['auth/login'],
+            '--config' => $configPath,
+            '--specs-dir' => $this->specsDir,
+        ]);
+
+        $display = $tester->getDisplay();
+        self::assertStringContainsString('The login endpoint accepts a username and password.', $display);
+    }
+
     /**
      * @param list<TestMethod> $testMethods
      */

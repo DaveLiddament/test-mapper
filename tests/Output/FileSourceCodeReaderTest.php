@@ -32,6 +32,20 @@ final class FileSourceCodeReaderTest extends TestCase
     }
 
     #[Test]
+    public function itReadsExactStartLine(): void
+    {
+        $path = $this->fixturePath('SampleTest.php');
+
+        // Line 9 is "    public function itDoesSomething(): void"
+        // Line 8 is "{"
+        $result = $this->reader->readLines($path, 9, 9);
+        self::assertStringContainsString('itDoesSomething', $result);
+
+        $result = $this->reader->readLines($path, 8, 8);
+        self::assertStringNotContainsString('itDoesSomething', $result);
+    }
+
+    #[Test]
     public function itReadsSingleLine(): void
     {
         $path = $this->fixturePath('SampleTest.php');
@@ -40,6 +54,26 @@ final class FileSourceCodeReaderTest extends TestCase
 
         self::assertStringContainsString('itDoesSomething', $result);
         self::assertStringNotContainsString('$a = 1;', $result);
+    }
+
+    #[Test]
+    public function itTrimsTrailingWhitespaceFromReadLines(): void
+    {
+        $path = $this->fixturePath('SampleTest.php');
+
+        $result = $this->reader->readLines($path, 9, 13);
+
+        self::assertSame('}', substr($result, -1));
+    }
+
+    #[Test]
+    public function itTrimsTrailingWhitespaceFromReadFile(): void
+    {
+        $path = $this->fixturePath('SampleTest.php');
+
+        $result = $this->reader->readFile($path);
+
+        self::assertSame('}', substr($result, -1));
     }
 
     #[Test]

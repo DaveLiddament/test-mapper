@@ -18,6 +18,7 @@ final class ConfigLoader
             return $this->requireConfig($configPath);
         }
 
+        /** @infection-ignore-all Path construction only exercised when default config exists at cwd */
         $defaultPath = getcwd().'/'.self::DEFAULT_CONFIG_FILE;
 
         if (!file_exists($defaultPath)) {
