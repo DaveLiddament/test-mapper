@@ -3,7 +3,7 @@
     "description": "Test Mapper",
     "type": "library",
     "license": "proprietary",
-    "bin": ["bin/test-mapper"],
+    "bin": ["bin/test-mapper", "bin/spec-reviewer"],
     "require": {
         "php": "~8.5",
         "symfony/console": "^7.2",
