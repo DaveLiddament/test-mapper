@@ -265,6 +265,56 @@ final class SpecReviewerCommandTest extends TestCase
         self::assertStringNotContainsString('## Specs', $display);
     }
 
+    #[Test]
+    public function itAcceptsTestDirCliOption(): void
+    {
+        $testMethod = new TestMethod(
+            'App\\Tests\\LoginTest',
+            'it_validates',
+            10,
+            15,
+            'tests/LoginTest.php',
+            [],
+            ['auth/login'],
+        );
+
+        $command = $this->createCommand([$testMethod]);
+        $tester = new CommandTester($command);
+        $tester->execute([
+            'specs' => ['auth/login'],
+            '--specs-dir' => $this->specsDir,
+            '--test-dir' => ['tests'],
+        ]);
+
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertStringContainsString('# Changes to Review', $tester->getDisplay());
+    }
+
+    #[Test]
+    public function itAcceptsExcludeTestDirCliOption(): void
+    {
+        $testMethod = new TestMethod(
+            'App\\Tests\\LoginTest',
+            'it_validates',
+            10,
+            15,
+            'tests/LoginTest.php',
+            [],
+            ['auth/login'],
+        );
+
+        $command = $this->createCommand([$testMethod]);
+        $tester = new CommandTester($command);
+        $tester->execute([
+            'specs' => ['auth/login'],
+            '--specs-dir' => $this->specsDir,
+            '--exclude-test-dir' => ['tests/Fixtures'],
+        ]);
+
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertStringContainsString('# Changes to Review', $tester->getDisplay());
+    }
+
     /**
      * @param list<TestMethod> $testMethods
      */

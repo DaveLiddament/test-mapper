@@ -59,6 +59,20 @@ final class SpecReviewerCommand extends Command
             InputOption::VALUE_NONE,
             'Omit the Specs section (useful when specs are not markdown)',
         );
+
+        $this->addOption(
+            'test-dir',
+            't',
+            InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+            'Test directory to scan (overrides config; default: tests)',
+        );
+
+        $this->addOption(
+            'exclude-test-dir',
+            'e',
+            InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+            'Test directory to exclude (overrides config)',
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -94,7 +108,14 @@ final class SpecReviewerCommand extends Command
             return Command::FAILURE;
         }
 
-        $filter = TestDirectoryFilter::fromConfig($config);
+        /** @var list<string> $testDirOption */
+        $testDirOption = $input->getOption('test-dir');
+        /** @var list<string> $excludeTestDirOption */
+        $excludeTestDirOption = $input->getOption('exclude-test-dir');
+
+        $testDirectories = [] !== $testDirOption ? $testDirOption : $config->getTestDirectories();
+        $excludeDirectories = [] !== $excludeTestDirOption ? $excludeTestDirOption : $config->getExcludeTestDirectories();
+        $filter = new TestDirectoryFilter($testDirectories, $excludeDirectories);
         $testsBySpec = $this->findMatchingTests($specNames, $filter);
 
         $this->writeMarkdown($specNames, $testsBySpec, $specsDir, $noSpecs, $output);

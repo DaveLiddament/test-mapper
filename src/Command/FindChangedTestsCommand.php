@@ -73,6 +73,20 @@ final class FindChangedTestsCommand extends Command
             InputOption::VALUE_NONE,
             'Include untracked files (files not yet staged)',
         );
+
+        $this->addOption(
+            'test-dir',
+            't',
+            InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+            'Test directory to scan (overrides config; default: tests)',
+        );
+
+        $this->addOption(
+            'exclude-test-dir',
+            'e',
+            InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+            'Test directory to exclude (overrides config)',
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -101,7 +115,14 @@ final class FindChangedTestsCommand extends Command
         /** @var string|null $specsDir */
         $specsDir = $input->getOption('specs-dir') ?? $config->getSpecsDir();
 
-        $filter = TestDirectoryFilter::fromConfig($config);
+        /** @var list<string> $testDirOption */
+        $testDirOption = $input->getOption('test-dir');
+        /** @var list<string> $excludeTestDirOption */
+        $excludeTestDirOption = $input->getOption('exclude-test-dir');
+
+        $testDirectories = [] !== $testDirOption ? $testDirOption : $config->getTestDirectories();
+        $excludeDirectories = [] !== $excludeTestDirOption ? $excludeTestDirOption : $config->getExcludeTestDirectories();
+        $filter = new TestDirectoryFilter($testDirectories, $excludeDirectories);
         $changedTests = $filter->filter($this->changedTestFinder->findChangedTests($branch, $includeUntracked));
 
         $classificationResult = null;

@@ -104,6 +104,8 @@ composer require dave-liddament/test-mapper
 | `--specs-dir` | `-d` | _(none)_ | Specs directory (enables classification) |
 | `--format` | `-f` | `table` | Output format: `table`, `json`, or `specs` |
 | `--include-untracked` | `-u` | _(off)_ | Also scan untracked files (not yet `git add`ed) |
+| `--test-dir` | `-t` | `tests` | Test directory to scan (repeatable, overrides config) |
+| `--exclude-test-dir` | `-e` | _(none)_ | Test directory to exclude (repeatable, overrides config) |
 | `--config` | `-c` | _(auto)_ | Path to config file (default: `.test-mapper.php`) |
 
 ## Spec Reviewer
@@ -129,6 +131,8 @@ The output includes a table of contents with links, the full contents of each sp
 |---|---|---|---|
 | `--specs-dir` | `-d` | _(required)_ | Specs directory |
 | `--no-specs` | | _(off)_ | Omit the Specs section from output |
+| `--test-dir` | `-t` | `tests` | Test directory to scan (repeatable, overrides config) |
+| `--exclude-test-dir` | `-e` | _(none)_ | Test directory to exclude (repeatable, overrides config) |
 | `--config` | `-c` | _(auto)_ | Path to config file (default: `.test-mapper.php`) |
 
 Spec names are passed as positional arguments. If none are given, they are read from stdin (one per line), enabling piping from `--format specs`.

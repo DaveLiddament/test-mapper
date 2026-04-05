@@ -400,4 +400,40 @@ final class FindChangedTestsCommandTest extends TestCase
 
         self::assertSame(0, $tester->getStatusCode());
     }
+
+    #[Test]
+    public function itFiltersChangedTestsByTestDirCliOption(): void
+    {
+        $changedTestFinder = static::createStub(ChangedTestFinder::class);
+        $changedTestFinder->method('findChangedTests')->willReturn([
+            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', filePath: 'tests/FooTest.php'),
+            new ChangedTestMethod('App\\Tests\\BarTest', 'it_works', filePath: 'integration/BarTest.php'),
+        ]);
+
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, null, $this->formatters);
+        $tester = new CommandTester($command);
+        $tester->execute(['--test-dir' => ['integration']]);
+
+        $output = $tester->getDisplay();
+        self::assertStringNotContainsString('FooTest', $output);
+        self::assertStringContainsString('BarTest', $output);
+    }
+
+    #[Test]
+    public function itExcludesTestDirViaCliOption(): void
+    {
+        $changedTestFinder = static::createStub(ChangedTestFinder::class);
+        $changedTestFinder->method('findChangedTests')->willReturn([
+            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', filePath: 'tests/FooTest.php'),
+            new ChangedTestMethod('App\\Tests\\FixtureTest', 'it_works', filePath: 'tests/Fixtures/FixtureTest.php'),
+        ]);
+
+        $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, null, $this->formatters);
+        $tester = new CommandTester($command);
+        $tester->execute(['--exclude-test-dir' => ['tests/Fixtures']]);
+
+        $output = $tester->getDisplay();
+        self::assertStringContainsString('FooTest', $output);
+        self::assertStringNotContainsString('FixtureTest', $output);
+    }
 }
