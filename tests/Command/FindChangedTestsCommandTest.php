@@ -516,4 +516,31 @@ final class FindChangedTestsCommandTest extends TestCase
         self::assertSame(1, $tester->getStatusCode());
         self::assertStringContainsString('Specs directory not found', $tester->getDisplay());
     }
+
+    #[Test]
+    public function itWritesOutputToFile(): void
+    {
+        $changedTestFinder = static::createStub(ChangedTestFinder::class);
+        $changedTestFinder->method('findChangedTests')->willReturn([
+            new ChangedTestMethod('App\\Tests\\FooTest', 'it_works', filePath: 'tests/FooTest.php'),
+        ]);
+
+        $outputPath = tempnam(sys_get_temp_dir(), 'test-mapper-');
+        self::assertNotFalse($outputPath);
+
+        try {
+            $command = new FindChangedTestsCommand($changedTestFinder, $this->testClassifier, $this->configLoader, null, $this->formatters);
+            $tester = new CommandTester($command);
+            $tester->execute(['--format' => 'json', '--output' => $outputPath]);
+
+            self::assertSame(0, $tester->getStatusCode());
+            self::assertSame('', $tester->getDisplay());
+
+            $fileContents = file_get_contents($outputPath);
+            self::assertNotFalse($fileContents);
+            self::assertStringContainsString('FooTest', $fileContents);
+        } finally {
+            @unlink($outputPath);
+        }
+    }
 }

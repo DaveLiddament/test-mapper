@@ -110,6 +110,7 @@ composer require dave-liddament/test-mapper
 | `--test-dir` | `-t` | `tests` | Test directory to scan (repeatable, overrides config) |
 | `--exclude-test-dir` | `-e` | _(none)_ | Test directory to exclude (repeatable, overrides config) |
 | `--config` | `-c` | _(auto)_ | Path to config file (default: `.test-mapper.php`) |
+| `--output` | `-o` | _(stdout)_ | Write output to file instead of stdout |
 
 ## Spec Reviewer
 
@@ -137,6 +138,7 @@ The output includes a table of contents with links, the full contents of each sp
 | `--test-dir` | `-t` | `tests` | Test directory to scan (repeatable, overrides config) |
 | `--exclude-test-dir` | `-e` | _(none)_ | Test directory to exclude (repeatable, overrides config) |
 | `--config` | `-c` | _(auto)_ | Path to config file (default: `.test-mapper.php`) |
+| `--output` | `-o` | _(stdout)_ | Write output to file instead of stdout |
 
 Spec names are passed as positional arguments. If none are given, they are read from stdin (one per line), enabling piping from `--format specs`.
 

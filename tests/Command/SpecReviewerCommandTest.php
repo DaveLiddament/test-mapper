@@ -355,6 +355,43 @@ final class SpecReviewerCommandTest extends TestCase
         self::assertStringContainsString('The login endpoint accepts a username and password.', $display);
     }
 
+    #[Test]
+    public function itWritesOutputToFile(): void
+    {
+        $testMethod = new TestMethod(
+            'App\\Tests\\LoginTest',
+            'it_validates',
+            10,
+            15,
+            'tests/LoginTest.php',
+            [],
+            ['auth/login'],
+        );
+
+        $outputPath = tempnam(sys_get_temp_dir(), 'spec-reviewer-');
+        self::assertNotFalse($outputPath);
+
+        try {
+            $command = $this->createCommand([$testMethod]);
+            $tester = new CommandTester($command);
+            $tester->execute([
+                'specs' => ['auth/login'],
+                '--specs-dir' => $this->specsDir,
+                '--output' => $outputPath,
+            ]);
+
+            self::assertSame(0, $tester->getStatusCode());
+            self::assertSame('', $tester->getDisplay());
+
+            $fileContents = file_get_contents($outputPath);
+            self::assertNotFalse($fileContents);
+            self::assertStringContainsString('# Changes to Review', $fileContents);
+            self::assertStringContainsString('auth/login', $fileContents);
+        } finally {
+            @unlink($outputPath);
+        }
+    }
+
     /**
      * @param list<TestMethod> $testMethods
      */

@@ -16,6 +16,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Output\StreamOutput;
 
 #[AsCommand(
     name: 'find-changed-tests',
@@ -87,6 +88,13 @@ final class FindChangedTestsCommand extends Command
             InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
             'Test directory to exclude (overrides config)',
         );
+
+        $this->addOption(
+            'output',
+            'o',
+            InputOption::VALUE_REQUIRED,
+            'Write output to file instead of stdout',
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -138,6 +146,7 @@ final class FindChangedTestsCommand extends Command
             $classificationResult = $this->testClassifier->classify($changedTests, $changedSpecs);
         }
 
+        $formatterOutput = $this->resolveOutput($input, $output);
         $formatter = $this->formatters[$format] ?? new TableOutputFormatter();
         $formatter->format($changedTests, $classificationResult, $formatterOutput);
 
@@ -146,5 +155,23 @@ final class FindChangedTestsCommand extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    private function resolveOutput(InputInterface $input, OutputInterface $output): OutputInterface
+    {
+        /** @var string|null $outputPath */
+        $outputPath = $input->getOption('output');
+
+        if (null === $outputPath) {
+            return $output;
+        }
+
+        $handle = @fopen($outputPath, 'w');
+
+        if (false === $handle) {
+            return $output; // @codeCoverageIgnore
+        }
+
+        return new StreamOutput($handle);
     }
 }

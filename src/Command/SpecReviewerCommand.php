@@ -16,6 +16,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Output\StreamOutput;
 
 #[AsCommand(
     name: 'spec-reviewer',
@@ -73,6 +74,13 @@ final class SpecReviewerCommand extends Command
             InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
             'Test directory to exclude (overrides config)',
         );
+
+        $this->addOption(
+            'output',
+            'o',
+            InputOption::VALUE_REQUIRED,
+            'Write output to file instead of stdout',
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -126,9 +134,28 @@ final class SpecReviewerCommand extends Command
         $filter = new TestDirectoryFilter($testDirectories, $excludeDirectories);
         $testsBySpec = $this->findMatchingTests($specNames, $filter);
 
-        $this->writeMarkdown($specNames, $testsBySpec, $specsDir, $noSpecs, $output);
+        $formatterOutput = $this->resolveOutput($input, $output);
+        $this->writeMarkdown($specNames, $testsBySpec, $specsDir, $noSpecs, $formatterOutput);
 
         return Command::SUCCESS;
+    }
+
+    private function resolveOutput(InputInterface $input, OutputInterface $output): OutputInterface
+    {
+        /** @var string|null $outputPath */
+        $outputPath = $input->getOption('output');
+
+        if (null === $outputPath) {
+            return $output;
+        }
+
+        $handle = @fopen($outputPath, 'w');
+
+        if (false === $handle) {
+            return $output; // @codeCoverageIgnore
+        }
+
+        return new StreamOutput($handle);
     }
 
     /**
