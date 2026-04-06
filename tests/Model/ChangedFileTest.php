@@ -8,9 +8,11 @@ use DaveLiddament\TestMapper\Model\ChangedFile;
 use DaveLiddament\TestMapper\Model\ChangedLineRange;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ChangedFile::class)]
+#[Ticket('004-changed-file')]
 final class ChangedFileTest extends TestCase
 {
     #[Test]

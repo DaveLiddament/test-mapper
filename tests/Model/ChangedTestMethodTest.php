@@ -7,9 +7,11 @@ namespace DaveLiddament\TestMapper\Tests\Model;
 use DaveLiddament\TestMapper\Model\ChangedTestMethod;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ChangedTestMethod::class)]
+#[Ticket('001-changed-test-method')]
 final class ChangedTestMethodTest extends TestCase
 {
     #[Test]

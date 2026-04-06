@@ -11,9 +11,12 @@ use DaveLiddament\TestMapper\TestAnalyzer\PhpUnit\PhpUnitTestMethodFinder;
 use DaveLiddament\TestMapper\Tests\Fixtures\TestAnalyzer\SimpleTestClass;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(PhpUnitTestMethodFinder::class)]
+#[Ticket('011-phpunit-test-method-finder')]
+#[Ticket('026-ticket-convention')]
 final class PhpUnitTestMethodFinderTest extends TestCase
 {
     private PhpUnitTestMethodFinder $finder;

@@ -13,9 +13,11 @@ use DaveLiddament\TestMapper\Model\TestMethod;
 use DaveLiddament\TestMapper\TestAnalyzer\TestMethodFinder;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ChangedTestMethodFinder::class)]
+#[Ticket('013-changed-test-method-finder')]
 final class ChangedTestMethodFinderTest extends TestCase
 {
     #[Test]

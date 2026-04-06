@@ -10,9 +10,11 @@ use DaveLiddament\TestMapper\Specs\GitChangedSpecsFinder;
 use DaveLiddament\TestMapper\Specs\NameStatusDiffParser;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(GitChangedSpecsFinder::class)]
+#[Ticket('010-name-status-parser')]
 final class GitChangedSpecsFinderTest extends TestCase
 {
     #[Test]

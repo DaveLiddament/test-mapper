@@ -11,10 +11,12 @@ use DaveLiddament\TestMapper\Model\TestStatus;
 use DaveLiddament\TestMapper\Output\GitHubOutputFormatter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 #[CoversClass(GitHubOutputFormatter::class)]
+#[Ticket('021-github-output-format')]
 final class GitHubOutputFormatterTest extends TestCase
 {
     private GitHubOutputFormatter $formatter;

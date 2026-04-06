@@ -11,10 +11,12 @@ use DaveLiddament\TestMapper\Model\TestStatus;
 use DaveLiddament\TestMapper\Output\JsonOutputFormatter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 #[CoversClass(JsonOutputFormatter::class)]
+#[Ticket('019-json-output-format')]
 final class JsonOutputFormatterTest extends TestCase
 {
     private JsonOutputFormatter $formatter;

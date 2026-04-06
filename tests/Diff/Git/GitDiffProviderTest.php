@@ -11,9 +11,11 @@ use DaveLiddament\TestMapper\Model\ChangedFile;
 use DaveLiddament\TestMapper\Model\ChangedLineRange;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(GitDiffProvider::class)]
+#[Ticket('008-git-diff-provider')]
 final class GitDiffProviderTest extends TestCase
 {
     #[Test]

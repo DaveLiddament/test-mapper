@@ -9,9 +9,11 @@ use DaveLiddament\TestMapper\Model\FileChangeType;
 use DaveLiddament\TestMapper\Specs\NameStatusDiffParser;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(NameStatusDiffParser::class)]
+#[Ticket('010-name-status-parser')]
 final class NameStatusDiffParserTest extends TestCase
 {
     private NameStatusDiffParser $parser;

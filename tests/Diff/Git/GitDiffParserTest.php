@@ -8,9 +8,11 @@ use DaveLiddament\TestMapper\Diff\Git\GitDiffParser;
 use DaveLiddament\TestMapper\Tests\Helper\DiffFixtureGenerator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(GitDiffParser::class)]
+#[Ticket('009-unified-diff-parser')]
 final class GitDiffParserTest extends TestCase
 {
     private GitDiffParser $parser;

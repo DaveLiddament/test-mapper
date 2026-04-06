@@ -11,10 +11,12 @@ use DaveLiddament\TestMapper\Model\TestStatus;
 use DaveLiddament\TestMapper\Output\TableOutputFormatter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 #[CoversClass(TableOutputFormatter::class)]
+#[Ticket('018-table-output-format')]
 final class TableOutputFormatterTest extends TestCase
 {
     private TableOutputFormatter $formatter;

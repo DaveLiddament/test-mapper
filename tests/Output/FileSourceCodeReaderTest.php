@@ -7,9 +7,11 @@ namespace DaveLiddament\TestMapper\Tests\Output;
 use DaveLiddament\TestMapper\Output\FileSourceCodeReader;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(FileSourceCodeReader::class)]
+#[Ticket('012-source-code-reader')]
 final class FileSourceCodeReaderTest extends TestCase
 {
     private FileSourceCodeReader $reader;

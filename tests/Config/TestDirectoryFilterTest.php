@@ -9,9 +9,12 @@ use DaveLiddament\TestMapper\Config\TestMapperConfig;
 use DaveLiddament\TestMapper\Model\HasRelativeFilePath;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(TestDirectoryFilter::class)]
+#[Ticket('015-test-directory-filter')]
+#[Ticket('007-has-relative-file-path')]
 final class TestDirectoryFilterTest extends TestCase
 {
     #[Test]

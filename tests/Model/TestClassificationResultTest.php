@@ -9,9 +9,11 @@ use DaveLiddament\TestMapper\Model\TestClassificationResult;
 use DaveLiddament\TestMapper\Model\TestStatus;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(TestClassificationResult::class)]
+#[Ticket('006-classified-test')]
 final class TestClassificationResultTest extends TestCase
 {
     #[Test]

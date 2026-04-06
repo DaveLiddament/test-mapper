@@ -10,10 +10,12 @@ use DaveLiddament\TestMapper\Model\TestStatus;
 use DaveLiddament\TestMapper\Output\SpecsOutputFormatter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 #[CoversClass(SpecsOutputFormatter::class)]
+#[Ticket('020-specs-output-format')]
 final class SpecsOutputFormatterTest extends TestCase
 {
     private SpecsOutputFormatter $formatter;

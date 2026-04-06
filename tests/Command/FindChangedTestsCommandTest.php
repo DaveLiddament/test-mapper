@@ -16,10 +16,14 @@ use DaveLiddament\TestMapper\Specs\ChangedSpecsFinder;
 use DaveLiddament\TestMapper\TestClassifier;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 
 #[CoversClass(FindChangedTestsCommand::class)]
+#[Ticket('023-find-changed-tests-command')]
+#[Ticket('017-cli-option-precedence')]
+#[Ticket('025-cli-output-redirection')]
 final class FindChangedTestsCommandTest extends TestCase
 {
     /** @var array<string, \DaveLiddament\TestMapper\Output\OutputFormatter> */

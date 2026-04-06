@@ -8,9 +8,11 @@ use DaveLiddament\TestMapper\Model\ChangedSpecFile;
 use DaveLiddament\TestMapper\Model\FileChangeType;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ChangedSpecFile::class)]
+#[Ticket('005-changed-spec-file')]
 final class ChangedSpecFileTest extends TestCase
 {
     #[Test]

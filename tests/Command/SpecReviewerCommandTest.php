@@ -12,10 +12,15 @@ use DaveLiddament\TestMapper\Output\FileSourceCodeReader;
 use DaveLiddament\TestMapper\TestAnalyzer\TestMethodFinder;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 
 #[CoversClass(SpecReviewerCommand::class)]
+#[Ticket('024-spec-reviewer-command')]
+#[Ticket('022-ai-review-markdown-format')]
+#[Ticket('017-cli-option-precedence')]
+#[Ticket('025-cli-output-redirection')]
 final class SpecReviewerCommandTest extends TestCase
 {
     private string $specsDir;

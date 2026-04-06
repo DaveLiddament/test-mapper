@@ -7,9 +7,11 @@ namespace DaveLiddament\TestMapper\Tests\Config;
 use DaveLiddament\TestMapper\Config\ConfigLoader;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ConfigLoader::class)]
+#[Ticket('016-config-file')]
 final class ConfigLoaderTest extends TestCase
 {
     private ConfigLoader $loader;

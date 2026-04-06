@@ -8,9 +8,11 @@ use DaveLiddament\TestMapper\Model\ChangedLineRange;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ChangedLineRange::class)]
+#[Ticket('003-line-range')]
 final class ChangedLineRangeTest extends TestCase
 {
     /**

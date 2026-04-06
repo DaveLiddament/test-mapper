@@ -10,9 +10,11 @@ use DaveLiddament\TestMapper\Model\FileChangeType;
 use DaveLiddament\TestMapper\TestClassifier;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(TestClassifier::class)]
+#[Ticket('014-test-classifier')]
 final class TestClassifierTest extends TestCase
 {
     private TestClassifier $classifier;

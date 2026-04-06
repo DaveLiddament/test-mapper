@@ -8,10 +8,13 @@ use DaveLiddament\TestMapper\Model\LineRange;
 use DaveLiddament\TestMapper\Model\TestMethod;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(TestMethod::class)]
 #[CoversClass(LineRange::class)]
+#[Ticket('002-test-method')]
+#[Ticket('003-line-range')]
 final class TestMethodTest extends TestCase
 {
     #[Test]
