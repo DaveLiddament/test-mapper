@@ -33,8 +33,10 @@ final class GitDiffProviderTest extends TestCase
     public function itIncludesUntrackedFiles(): void
     {
         $repoRoot = dirname(__DIR__, 3);
-        $untrackedFile = $repoRoot.'/untracked-test-fixture.php';
-        file_put_contents($untrackedFile, "<?php\n// test\n");
+        $untrackedFileA = $repoRoot.'/untracked-test-fixture-a.php';
+        $untrackedFileB = $repoRoot.'/untracked-test-fixture-b.php';
+        file_put_contents($untrackedFileA, "<?php\n// test\n");
+        file_put_contents($untrackedFileB, "<?php\n// test\n");
 
         try {
             $provider = new GitDiffProvider($repoRoot, new GitDiffParser());
@@ -44,16 +46,18 @@ final class GitDiffProviderTest extends TestCase
                 static fn (ChangedFile $f): string => $f->filePath,
                 $result,
             );
-            self::assertContains('untracked-test-fixture.php', $untrackedPaths);
+            self::assertContains('untracked-test-fixture-a.php', $untrackedPaths);
+            self::assertContains('untracked-test-fixture-b.php', $untrackedPaths);
 
             $untrackedEntry = array_values(array_filter(
                 $result,
-                static fn (ChangedFile $f): bool => 'untracked-test-fixture.php' === $f->filePath,
+                static fn (ChangedFile $f): bool => 'untracked-test-fixture-a.php' === $f->filePath,
             ))[0];
             self::assertCount(1, $untrackedEntry->changedLineRanges);
             self::assertEquals(new ChangedLineRange(1, \PHP_INT_MAX), $untrackedEntry->changedLineRanges[0]);
         } finally {
-            unlink($untrackedFile);
+            unlink($untrackedFileA);
+            unlink($untrackedFileB);
         }
     }
 
