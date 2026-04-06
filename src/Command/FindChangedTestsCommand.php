@@ -63,7 +63,7 @@ final class FindChangedTestsCommand extends Command
             'format',
             'f',
             InputOption::VALUE_REQUIRED,
-            'Output format (table, json, specs)',
+            'Output format (table, json, specs, github)',
             'table',
         );
 
@@ -139,7 +139,7 @@ final class FindChangedTestsCommand extends Command
         }
 
         $formatter = $this->formatters[$format] ?? new TableOutputFormatter();
-        $formatter->format($changedTests, $classificationResult, $output);
+        $formatter->format($changedTests, $classificationResult, $formatterOutput);
 
         if (null !== $classificationResult) {
             return $classificationResult->getExitCode();

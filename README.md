@@ -94,6 +94,9 @@ composer require dave-liddament/test-mapper
 
 # JSON output
 ./vendor/bin/test-mapper --specs-dir specs --format json
+
+# GitHub Actions annotations (for CI)
+./vendor/bin/test-mapper --specs-dir specs --format github
 ```
 
 ### Options
@@ -102,7 +105,7 @@ composer require dave-liddament/test-mapper
 |---|---|---|---|
 | `--branch` | `-b` | `main` | Base branch to diff against |
 | `--specs-dir` | `-d` | _(none)_ | Specs directory (enables classification) |
-| `--format` | `-f` | `table` | Output format: `table`, `json`, or `specs` |
+| `--format` | `-f` | `table` | Output format: `table`, `json`, `specs`, or `github` |
 | `--include-untracked` | `-u` | _(off)_ | Also scan untracked files (not yet `git add`ed) |
 | `--test-dir` | `-t` | `tests` | Test directory to scan (repeatable, overrides config) |
 | `--exclude-test-dir` | `-e` | _(none)_ | Test directory to exclude (repeatable, overrides config) |
