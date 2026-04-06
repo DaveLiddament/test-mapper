@@ -6,6 +6,7 @@
         ]
     },
     "staticAnalysisTool": "phpstan",
+    "staticAnalysisToolOptions": "--memory-limit=-1",
     "logs": {
         "text": "infection.log"
     },

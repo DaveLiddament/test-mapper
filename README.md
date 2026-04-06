@@ -71,7 +71,7 @@ Without `--specs-dir`, classification is skipped and the exit code is always `0`
 
 ## Installation
 
-Requires PHP 8.5+ and Git.
+Requires PHP 8.3, 8.4, or 8.5, and Git.
 
 ```bash
 composer require dave-liddament/test-mapper

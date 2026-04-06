@@ -12,5 +12,29 @@ services:
       - .:/app
       - composer-cache:/root/.composer/cache
 
+  app-php83:
+    extends:
+      service: app
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.3"
+
+  app-php84:
+    extends:
+      service: app
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.4"
+
+  app-php85:
+    extends:
+      service: app
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.5"
+
 volumes:
   composer-cache:

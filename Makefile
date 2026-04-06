@@ -100,3 +100,17 @@ app/composer-validate: ## Validate composer.json
 
 app/infection: ## Run mutation testing with Infection
 	@$(APP_EXEC) vendor/bin/infection --show-mutations
+
+## —— Multi-PHP ————————————————————————————————————————————————————————————————
+.PHONY: app/ci-all app/ci-83 app/ci-84 app/ci-85
+
+app/ci-all: app/ci-83 app/ci-84 app/ci-85 ## Run CI against PHP 8.3, 8.4, and 8.5
+
+app/ci-83: ## Run CI against PHP 8.3
+	@$(DOCKER_COMP) run --rm app-php83 composer ci-local
+
+app/ci-84: ## Run CI against PHP 8.4
+	@$(DOCKER_COMP) run --rm app-php84 composer ci-local
+
+app/ci-85: ## Run CI against PHP 8.5
+	@$(DOCKER_COMP) run --rm app-php85 composer ci-local
