@@ -19,3 +19,20 @@ Common commands:
 - `make app/composer c="require some/package"` — Run composer commands
 
 Only fall back to `docker compose exec app <command>` if there is no suitable Make target.
+
+## Parallel Worktrees
+
+You can run multiple feature branches in parallel via git worktrees. Each worktree gets its own isolated Docker stack (containers, network, `vendor/`) derived from the directory name. The composer download cache is shared across all worktrees via a Docker volume named `test-mapper-composer-cache`, which Compose creates automatically on first `make up`.
+
+Create a new worktree:
+
+    make worktree-new name=feat-x
+    cd ../test-mapper-feat-x
+
+Work in it like the main checkout (`make app/test`, `make app/ci`, etc.).
+
+Tear down when done (run from any `test-mapper` checkout, not from inside the worktree being removed):
+
+    make worktree-rm name=feat-x
+
+Always create worktrees as siblings of `test-mapper`, never inside it.

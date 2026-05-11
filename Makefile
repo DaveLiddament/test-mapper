@@ -114,3 +114,21 @@ app/ci-84: ## Run CI against PHP 8.4
 
 app/ci-85: ## Run CI against PHP 8.5
 	@$(DOCKER_COMP) run --rm app-php85 composer ci-local
+
+## —— Worktree ————————————————————————————————————————————————————————————————
+.PHONY: worktree-new worktree-rm
+
+worktree-new: ## Create branch+worktree, start stack, install deps. Usage: make worktree-new name=feat-x
+	@$(eval name ?=)
+	@if [ -z "$(name)" ]; then echo "Error: name=<branch-and-dir-suffix> is required" >&2; exit 1; fi
+	git worktree add ../test-mapper-$(name) -b $(name)
+	cd ../test-mapper-$(name) && $(MAKE) up && $(MAKE) app/setup
+	@echo ""
+	@echo "Worktree ready. Switch to it with: cd ../test-mapper-$(name)"
+
+worktree-rm: ## Stop stack and remove a worktree. Usage: make worktree-rm name=feat-x
+	@$(eval name ?=)
+	@if [ -z "$(name)" ]; then echo "Error: name=<worktree-name> is required" >&2; exit 1; fi
+	cd ../test-mapper-$(name) && $(MAKE) down
+	git worktree remove ../test-mapper-$(name)
+	@echo "Worktree ../test-mapper-$(name) removed"

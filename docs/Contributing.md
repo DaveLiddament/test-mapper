@@ -86,6 +86,29 @@ composer ci-local     # Full CI suite (with auto code style fix)
 composer ci           # Full CI suite (code style check only, used in CI pipelines)
 ```
 
+## Parallel Development with Worktrees
+
+You can work on multiple branches in parallel using git worktrees. Each worktree gets its own isolated Docker stack (containers, network, `vendor/`) automatically derived from the directory name. The composer download cache is shared across all worktrees, so first-install downloads only happen once.
+
+Create a new worktree:
+
+```bash
+make worktree-new name=feat-x
+cd ../test-mapper-feat-x
+```
+
+This creates a new branch `feat-x`, places the worktree at `../test-mapper-feat-x`, brings up its Docker stack, and runs `composer install`. Work in it like the main checkout — `make app/test`, `make app/ci`, etc.
+
+Tear down when done (run from any `test-mapper` checkout, not from inside the worktree being removed):
+
+```bash
+make worktree-rm name=feat-x
+```
+
+The branch is preserved after removal so you can still merge or open a PR; use `git branch -d feat-x` to delete it once merged.
+
+Always create worktrees as **siblings** of `test-mapper`, never inside it (a nested worktree would land inside the Docker bind mount).
+
 ## Other Make Targets
 
 | Command | Description |
@@ -96,6 +119,8 @@ composer ci           # Full CI suite (code style check only, used in CI pipelin
 | `make logs` | Show live container logs |
 | `make app/shell` | Open a bash shell inside the container |
 | `make app/composer c="require some/package"` | Run arbitrary Composer commands |
+| `make worktree-new name=feat-x` | Create a new branch + git worktree, start its stack, install deps |
+| `make worktree-rm name=feat-x` | Stop the worktree's stack and remove the worktree |
 
 Run `make help` to see all available targets.
 
