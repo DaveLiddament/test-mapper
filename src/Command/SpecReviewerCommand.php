@@ -122,6 +122,18 @@ final class SpecReviewerCommand extends Command
             return Command::FAILURE;
         }
 
+        if (!$noSpecs) {
+            $missingSpecs = $this->findMissingSpecs($specNames, $specsDir);
+
+            if ([] !== $missingSpecs) {
+                foreach ($missingSpecs as $missing) {
+                    $output->writeln(sprintf('Spec file not found: %s', $missing));
+                }
+
+                return Command::FAILURE;
+            }
+        }
+
         /** @var list<string> $testDirOption */
         $testDirOption = $input->getOption('test-dir');
         /** @var list<string> $excludeTestDirOption */
@@ -431,12 +443,42 @@ final class SpecReviewerCommand extends Command
         $matches = glob($pattern);
 
         if (false === $matches || [] === $matches) {
-            return null; // @codeCoverageIgnore
+            return null;
         }
 
         $fullPath = $matches[0];
 
         return substr($fullPath, \strlen($specsDir) + 1);
+    }
+
+    /**
+     * @param list<string> $specNames
+     *
+     * @return list<string>
+     */
+    private function findMissingSpecs(array $specNames, string $specsDir): array
+    {
+        $missing = [];
+
+        foreach ($specNames as $spec) {
+            if (null === $this->findSpecFile($specsDir, $spec)) {
+                $missing[] = $spec;
+            }
+        }
+
+        return $missing;
+    }
+
+    /** @infection-ignore-all Cosmetic path normalisation */
+    private function toRelativeFilePath(string $filePath): string
+    {
+        $basePath = (string) getcwd();
+
+        if ('' !== $basePath && str_starts_with($filePath, $basePath.'/')) {
+            return substr($filePath, \strlen($basePath) + 1);
+        }
+
+        return $filePath;
     }
 
     /** @infection-ignore-all Anchor generation — cosmetic formatting */

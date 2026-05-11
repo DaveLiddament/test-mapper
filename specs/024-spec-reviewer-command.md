@@ -31,12 +31,13 @@ Spec names are passed as positional arguments. If no arguments are given, spec n
 1. Load the config file, merge with CLI options
 2. Validate that `--specs-dir` was supplied (via CLI or config) and points to an existing directory — error if not
 3. Collect spec names from the positional args or stdin
-4. Recursively scan each `testDirectories` entry for `.php` files
-5. For each file, run `PhpUnitTestMethodFinder` (see `011-phpunit-test-method-finder.md`) to get all test methods
-6. Filter tests to those whose ticket IDs match any of the requested specs
-7. Build a map: spec name → list of matching tests
-8. Render the markdown document (see `022-ai-review-markdown-format.md`) via `SourceCodeReader` (see `012-source-code-reader.md`)
-9. Write to stdout or `--output` file
+4. Validate that every spec name resolves to a file in `--specs-dir` — error if any are missing (skipped when `--no-specs` is set)
+5. Recursively scan each `testDirectories` entry for `.php` files
+6. For each file, run `PhpUnitTestMethodFinder` (see `011-phpunit-test-method-finder.md`) to get all test methods
+7. Filter tests to those whose ticket IDs match any of the requested specs
+8. Build a map: spec name → list of matching tests
+9. Render the markdown document (see `022-ai-review-markdown-format.md`) via `SourceCodeReader` (see `012-source-code-reader.md`)
+10. Write to stdout or `--output` file
 
 ## Errors
 
@@ -44,6 +45,7 @@ Spec names are passed as positional arguments. If no arguments are given, spec n
 - **`--specs-dir` does not exist** — "Specs directory not found: <path>", exit 1
 - **No spec names provided** — "No spec names provided", exit 1
 - **Missing `--config` file** — "Config file not found: <path>", exit 1
+- **Spec file not found** — "Spec file not found: <spec>" (one line per missing spec, so the user sees every typo at once), exit 1. Skipped when `--no-specs` is set, since that mode supports specs stored outside the filesystem.
 
 Exit code is always `0` on success regardless of whether any matching tests were found. An empty result still produces a valid (empty) markdown document.
 

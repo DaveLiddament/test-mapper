@@ -70,6 +70,62 @@ final class SpecReviewerCommandTest extends TestCase
     }
 
     #[Test]
+    public function itReturnsErrorWhenSpecFileNotFound(): void
+    {
+        $command = $this->createCommand([]);
+        $tester = new CommandTester($command);
+        $tester->execute([
+            'specs' => ['auth/does-not-exist'],
+            '--specs-dir' => $this->specsDir,
+        ]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString('Spec file not found: auth/does-not-exist', $tester->getDisplay());
+    }
+
+    #[Test]
+    public function itListsAllMissingSpecsWhenMultipleAreInvalid(): void
+    {
+        $command = $this->createCommand([]);
+        $tester = new CommandTester($command);
+        $tester->execute([
+            'specs' => ['auth/login', 'auth/typo-one', 'auth/typo-two'],
+            '--specs-dir' => $this->specsDir,
+        ]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        $display = $tester->getDisplay();
+        self::assertStringContainsString('Spec file not found: auth/typo-one', $display);
+        self::assertStringContainsString('Spec file not found: auth/typo-two', $display);
+        self::assertStringNotContainsString('Spec file not found: auth/login', $display);
+    }
+
+    #[Test]
+    public function itSkipsSpecFileValidationWhenNoSpecsFlagIsSet(): void
+    {
+        $testMethod = new TestMethod(
+            'App\\Tests\\LoginTest',
+            'it_validates',
+            10,
+            15,
+            'tests/LoginTest.php',
+            [],
+            ['external/spec'],
+        );
+
+        $command = $this->createCommand([$testMethod]);
+        $tester = new CommandTester($command);
+        $tester->execute([
+            'specs' => ['external/spec'],
+            '--specs-dir' => $this->specsDir,
+            '--no-specs' => true,
+        ]);
+
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertStringNotContainsString('Spec file not found', $tester->getDisplay());
+    }
+
+    #[Test]
     public function itOutputsMarkdownForMatchingTests(): void
     {
         $testMethod = new TestMethod(
