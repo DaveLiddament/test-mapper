@@ -325,7 +325,8 @@ final class SpecReviewerCommand extends Command
                 $seenTests[$testName] = true;
 
                 $anchor = $this->toAnchor($testName);
-                $output->writeln(sprintf('- [%s](#%s) ([view file](%s))', $testName, $anchor, $testMethod->filePath));
+                $relativePath = $this->toRelativeFilePath($testMethod->filePath);
+                $output->writeln(sprintf('- [%s](#%s) ([view file](%s))', $testName, $anchor, $relativePath));
             }
         }
         $output->writeln('');
@@ -382,7 +383,10 @@ final class SpecReviewerCommand extends Command
             $output->writeln('');
 
             foreach ($testsBySpec[$spec] ?? [] as $testMethod) {
-                $output->writeln(sprintf('`%s`', $testMethod->filePath));
+                $testName = $testMethod->fullyQualifiedClassName.'::'.$testMethod->methodName;
+                $output->writeln(sprintf('#### %s', $testName));
+                $output->writeln('');
+                $output->writeln(sprintf('`%s`', $this->toRelativeFilePath($testMethod->filePath)));
                 $output->writeln('');
                 $output->writeln('```php');
                 $this->writeTestCode($testMethod, $output);

@@ -52,7 +52,10 @@ final class SpecReviewerCommandTest extends TestCase
         ]);
 
         self::assertSame(1, $tester->getStatusCode());
-        self::assertStringContainsString('Specs directory not found', $tester->getDisplay());
+        $display = $tester->getDisplay();
+        self::assertStringContainsString('Specs directory not found', $display);
+        // Ensure execution stops here — later validations (e.g. spec-file existence) must not run.
+        self::assertStringNotContainsString('Spec file not found', $display);
     }
 
     #[Test]
@@ -135,6 +138,81 @@ final class SpecReviewerCommandTest extends TestCase
         self::assertStringContainsString('# Changes to Review', $display);
         self::assertStringContainsString('## Tests', $display);
         self::assertStringNotContainsString('```php', $display);
+    }
+
+    #[Test]
+    public function itAddsPerTestHeadingMatchingTocAnchor(): void
+    {
+        $testMethod = new TestMethod(
+            'App\\Tests\\LoginTest',
+            'it_validates',
+            10,
+            15,
+            'tests/LoginTest.php',
+            [],
+            ['auth/login'],
+        );
+
+        $command = $this->createCommand([$testMethod]);
+        $tester = new CommandTester($command);
+        $tester->execute([
+            'specs' => ['auth/login'],
+            '--specs-dir' => $this->specsDir,
+        ]);
+
+        $display = $tester->getDisplay();
+        self::assertStringContainsString('#### App\\Tests\\LoginTest::it_validates', $display);
+        self::assertStringContainsString('(#apptestslogintestitvalidates)', $display);
+    }
+
+    #[Test]
+    public function itRendersTestPathsRelativeToCwd(): void
+    {
+        $cwd = (string) getcwd();
+        $testMethod = new TestMethod(
+            'App\\Tests\\LoginTest',
+            'it_validates',
+            10,
+            15,
+            $cwd.'/tests/LoginTest.php',
+            [],
+            ['auth/login'],
+        );
+
+        $command = $this->createCommand([$testMethod]);
+        $tester = new CommandTester($command);
+        $tester->execute([
+            'specs' => ['auth/login'],
+            '--specs-dir' => $this->specsDir,
+        ]);
+
+        $display = $tester->getDisplay();
+        self::assertStringContainsString('([view file](tests/LoginTest.php))', $display);
+        self::assertStringContainsString('`tests/LoginTest.php`', $display);
+        self::assertStringNotContainsString($cwd.'/tests/LoginTest.php', $display);
+    }
+
+    #[Test]
+    public function itLeavesTestPathsAbsoluteWhenOutsideCwd(): void
+    {
+        $testMethod = new TestMethod(
+            'App\\Tests\\LoginTest',
+            'it_validates',
+            10,
+            15,
+            '/elsewhere/tests/LoginTest.php',
+            [],
+            ['auth/login'],
+        );
+
+        $command = $this->createCommand([$testMethod]);
+        $tester = new CommandTester($command);
+        $tester->execute([
+            'specs' => ['auth/login'],
+            '--specs-dir' => $this->specsDir,
+        ]);
+
+        self::assertStringContainsString('/elsewhere/tests/LoginTest.php', $tester->getDisplay());
     }
 
     #[Test]
