@@ -31,8 +31,8 @@ final class FindChangedTestsCommand extends Command
         private readonly ChangedTestFinder $changedTestFinder,
         private readonly TestClassifier $testClassifier,
         private readonly ConfigLoader $configLoader,
-        private readonly ?ChangedSpecsFinder $changedSpecsFinder = null,
-        private readonly array $formatters = [],
+        private readonly ChangedSpecsFinder $changedSpecsFinder,
+        private readonly array $formatters,
     ) {
         parent::__construct();
     }
@@ -141,7 +141,7 @@ final class FindChangedTestsCommand extends Command
 
         $classificationResult = null;
 
-        if (null !== $specsDir && null !== $this->changedSpecsFinder) {
+        if (null !== $specsDir) {
             $changedSpecs = $this->changedSpecsFinder->findChangedSpecs($branch, $specsDir, $includeUntracked);
             $classificationResult = $this->testClassifier->classify($changedTests, $changedSpecs);
         }
